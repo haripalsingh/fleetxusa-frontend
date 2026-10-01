@@ -1,85 +1,117 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+// Cart state lives on the server (PHP API /api/cart). This module keeps one shared
+// client-side copy so every component (header badge, cart page, checkout) stays in sync.
+// Guests are identified by a random cart token; logged-in users by their account.
 
-// Same localStorage shape the React site (and the Header cart badge) already use:
-// key "cart" = array of items, "cartUpdate" event fired after every change.
+import { useEffect, useSyncExternalStore } from 'react';
+import { api, browserStorage, getCartToken, setCartToken } from './api';
+import type { Cart, CartItem, Totals } from './types';
 
-export type CartItem = {
-  id: string | number;
-  type?: string;
-  name: string;
-  part_number?: string;
-  option?: string;
-  price: number;
-  image_url?: string | null;
-  quantity: number;
+export type { CartItem } from './types';
+export { formatMoney } from './api';
+
+type CartState = Cart & { ready: boolean };
+
+const EMPTY_TOTALS: Totals = {
+  subtotal: 0,
+  discount_total: 0,
+  shipping_total: 0,
+  tax_total: 0,
+  grand_total: 0,
+  currency: 'USD',
+  free_shipping_threshold: null,
 };
 
-const KEY = 'cart';
+const EMPTY: CartState = { token: null, items: [], count: 0, subtotal: 0, issues: [], totals: EMPTY_TOTALS, ready: false };
 
-export const formatMoney = (n: number) =>
-  n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+let state: CartState = EMPTY;
+const listeners = new Set<() => void>();
+let loading: Promise<void> | null = null;
 
-export const readCart = (): CartItem[] => {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(KEY) || '[]');
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
+function setState(cart: Cart) {
+  if (cart.token) setCartToken(cart.token);
+  state = { ...cart, ready: true };
+  // Mirror a light copy to localStorage: the Header badge reads key "cart" + "cartUpdate" event.
+  browserStorage.set('cart', JSON.stringify(cart.items.map((i) => ({ id: i.id, quantity: i.quantity }))));
+  if (typeof window !== 'undefined') window.dispatchEvent(new Event('cartUpdate'));
+  listeners.forEach((l) => l());
+}
+
+export async function refreshCart(): Promise<void> {
+  if (!loading) {
+    loading = api<Cart>('/cart')
+      .then((res) => setState(res.data))
+      .catch(() => {
+        if (!state.ready) setState({ ...EMPTY, ready: true } as Cart);
+      })
+      .finally(() => {
+        loading = null;
+      });
   }
-};
+  return loading;
+}
 
-const writeCart = (items: CartItem[]) => {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(items));
-    window.dispatchEvent(new Event('cartUpdate'));
-  } catch {
-    /* storage unavailable (private mode etc.) */
-  }
-};
+/** Add a product variant. Throws ApiError (e.g. "Only 3 in stock") so the UI can show it. */
+export async function addToCart(variantId: number, quantity = 1): Promise<Cart> {
+  const res = await api<Cart>('/cart/items', { method: 'POST', body: { variant_id: variantId, quantity } });
+  setState(res.data);
+  return res.data;
+}
 
-export const addToCart = (item: Omit<CartItem, 'quantity'>, quantity: number) => {
-  const cart = readCart();
-  const existing = cart.find((c) => c.id === item.id && (c.option ?? '') === (item.option ?? ''));
-  if (existing) existing.quantity += quantity;
-  else cart.push({ ...item, quantity });
-  writeCart(cart);
-};
-
-export const setCartQuantity = (index: number, quantity: number) => {
+export async function setCartQuantity(item: CartItem, quantity: number): Promise<void> {
   if (quantity < 1) return;
-  const cart = readCart();
-  if (!cart[index]) return;
-  cart[index].quantity = Math.min(99, quantity);
-  writeCart(cart);
+  const res = await api<Cart>(`/cart/items/${item.id}`, { method: 'PATCH', body: { quantity: Math.min(99, quantity) } });
+  setState(res.data);
+}
+
+export async function removeCartItem(item: CartItem): Promise<void> {
+  const res = await api<Cart>(`/cart/items/${item.id}`, { method: 'DELETE' });
+  setState(res.data);
+}
+
+export async function clearCart(): Promise<void> {
+  const res = await api<Cart>('/cart', { method: 'DELETE' });
+  setState(res.data);
+}
+
+/** After login: move the guest cart into the user's cart. */
+export async function mergeGuestCart(): Promise<void> {
+  const guestToken = getCartToken();
+  try {
+    const res = await api<Cart>('/cart/merge', { method: 'POST' });
+    setCartToken(null);
+    setState(res.data);
+  } catch {
+    if (guestToken) setCartToken(null);
+    await refreshCart();
+  }
+}
+
+/** After logout: forget the local copy and start a fresh guest cart. */
+export async function resetCart(): Promise<void> {
+  setCartToken(null);
+  state = EMPTY;
+  await refreshCart();
+}
+
+const subscribe = (l: () => void) => {
+  listeners.add(l);
+  return () => listeners.delete(l);
 };
 
-export const removeCartItem = (index: number) => {
-  writeCart(readCart().filter((_, i) => i !== index));
-};
-
-export const clearCart = () => writeCart([]);
-
-export const useCart = () => {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [ready, setReady] = useState(false);
+export function useCart() {
+  const cart = useSyncExternalStore(subscribe, () => state, () => EMPTY);
 
   useEffect(() => {
-    const sync = () => {
-      setItems(readCart());
-      setReady(true);
+    if (!state.ready) void refreshCart();
+    // another tab changed the cart
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'cart') void refreshCart();
     };
-    sync();
-    window.addEventListener('cartUpdate', sync);
-    window.addEventListener('storage', sync);
-    return () => {
-      window.removeEventListener('cartUpdate', sync);
-      window.removeEventListener('storage', sync);
-    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
   }, []);
 
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const count = items.reduce((sum, i) => sum + i.quantity, 0);
-  return { items, ready, subtotal, count };
-};
+  return cart;
+}

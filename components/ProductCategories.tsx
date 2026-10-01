@@ -1,5 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 import Image from 'next/image';
 import Link from 'next/link';
+import { getCategories } from '@/lib/catalog';
 
 type Category = {
   title: string;
@@ -7,16 +9,23 @@ type Category = {
   image: string;
 };
 
-const CATEGORIES: Category[] = [
-  { title: 'Cooling System', slug: 'cooling-systems', image: '/images/cooling-systems.jpg' },
-  { title: 'Steering System', slug: 'steering-system', image: '/images/categories/steering-system.jpg' },
-  { title: 'Body and Cabin', slug: 'body-and-cabin', image: '/images/categories/body-and-cabin.jpg' },
-  { title: 'Air Spring & Shocks', slug: 'air-spring-shocks', image: '/images/categories/air-spring-shocks.jpg' },
-  { title: 'Air Brake & Wheel', slug: 'air-brake-wheel', image: '/images/categories/air-brake-wheel.jpg' },
-  { title: 'Chrome & Stainless', slug: 'chrome-stainless', image: '/images/categories/chrome-stainless.jpg' }
+// Fallback when the API is unreachable (e.g. during a build without the backend running).
+const FALLBACK: Category[] = [
+  { title: 'Clamps', slug: 'clamps', image: '/images/Clamps/20592783.JPG' },
+  { title: 'Filters', slug: 'filters', image: '/images/filter-cat.jpg' },
+  { title: 'Hoses', slug: 'hoses', image: '/images/Hoses/01-33096-000.JPG' },
+  { title: 'Seals', slug: 'seals', image: '/images/Seals/3033247.JPG' }
 ];
 
-const ProductCategories = () => {
+const ProductCategories = async () => {
+  const fromApi = await getCategories();
+  const CATEGORIES: Category[] = fromApi.length
+    ? fromApi
+        .filter((c) => !c.parent_id)
+        .slice(0, 4)
+        .map((c) => ({ title: c.name, slug: c.slug, image: c.image_url || '/images/fleet-x-icon.png' }))
+    : FALLBACK;
+
   return (
     <section className="w-full bg-white py-16 md:py-24">
       <div className="max-w-7xl mx-auto px-4 md:px-0">
@@ -37,7 +46,7 @@ const ProductCategories = () => {
         </div>
 
         {/* Category cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-12">
           {CATEGORIES.map((category) => (
             <Link
               key={category.slug}
@@ -45,15 +54,24 @@ const ProductCategories = () => {
               className="group block"
             >
               <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-black">
-                <Image
-                  src={category.image}
-                  alt={category.title}
-                  fill
-                  sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                />
+                {category.image.startsWith('/') ? (
+                  <Image
+                    src={category.image}
+                    alt={category.title}
+                    fill
+                    sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <img
+                    src={category.image}
+                    alt={category.title}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-contain bg-[#e6e9e8] transition-transform duration-500 group-hover:scale-105"
+                  />
+                )}
               </div>
-              <h3 className="mt-6 text-2xl md:text-[28px] font-medium uppercase tracking-tight text-[#2B2A29]">
+              <h3 className="mt-6 text-xl md:text-2xl font-medium uppercase tracking-tight text-[#2B2A29]">
                 {category.title}
               </h3>
               <span className="mt-6 inline-block border-b-2 border-[#2B2A29] pb-0.5 text-sm font-semibold uppercase tracking-[0.15em] text-[#2B2A29] group-hover:text-[#00a550] group-hover:border-[#00a550] transition-colors">

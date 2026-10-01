@@ -3,7 +3,7 @@ import Link from 'next/link';
 // Hero banner — looping background video (served from /public/images) with heading, copy and CTA on top.
 const HeroBanner = () => {
   return (
-    <section className="relative w-full overflow-hidden bg-black min-h-[560px] md:min-h-[750px] flex items-center">
+    <section className="relative w-full overflow-hidden bg-black min-h-[500px] md:h-[500px] flex items-center">
       <video
         className="absolute inset-0 h-full w-full object-cover"
         src="/images/fleetx-video.mp4"
@@ -18,7 +18,7 @@ const HeroBanner = () => {
       {/* Dark overlay keeps the text readable over the video */}
       <div className="absolute inset-0 bg-black/45" />
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-0 py-16">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 md:px-0 py-12 md:py-8">
         <h1 className="max-w-4xl text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-wide text-white mb-6">
           Heavy-Duty Parts
           <br />

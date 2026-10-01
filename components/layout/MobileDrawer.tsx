@@ -255,6 +255,16 @@ export default function MobileDrawer({
             )}
           </div>
 
+          {isAuthenticated && (
+            <Link
+              href="/account"
+              onClick={onClose}
+              className="block rounded-xl bg-gradient-to-r from-[#e9e611] to-[#00a34f] py-3 text-center text-sm font-bold text-white shadow-lg shadow-[#00a34f]/20 transition-opacity hover:opacity-90"
+            >
+              My Account &amp; Orders
+            </Link>
+          )}
+
           {!isAuthenticated && (
             <Link
               href="/signup"

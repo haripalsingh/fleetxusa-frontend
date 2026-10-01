@@ -1,38 +1,48 @@
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import ProductDetail from '@/components/ProductDetail';
-import {
-  DUMMY_CATEGORIES,
-  getDummyProduct,
-  getDummyProducts,
-} from '@/lib/dummyProducts';
+import CatalogUnavailable from '@/components/CatalogUnavailable';
+import { getProduct } from '@/lib/catalog';
+import { productUrl } from '@/lib/api';
+import type { Product } from '@/lib/types';
 
 type Props = { params: Promise<{ category: string; product: string }> };
 
-export function generateStaticParams() {
-  return DUMMY_CATEGORIES.flatMap((c) =>
-    getDummyProducts(c).map((p) => ({ category: c.slug, product: p.id }))
-  );
-}
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { category, product } = await params;
-  const found = getDummyProduct(category, product);
+  const { product } = await params;
+  const found = await getProduct(product).catch(() => null);
   if (!found) return {};
-  const title = `${found.product.name} | Fleet X Parts`;
-  const description = `${found.product.name} by ${found.product.brand}. Shop ${found.category.name} parts at Fleet X Parts.`;
+  const title = found.meta_title || `${found.name} | Fleet X Parts`;
+  const description =
+    found.meta_description ||
+    found.short_description ||
+    `${found.name}${found.brand ? ` by ${found.brand}` : ''}. Shop ${found.category?.name ?? 'truck'} parts at Fleet X Parts.`;
   return {
     title,
     description,
     robots: { index: true, follow: true },
-    openGraph: { title, description, siteName: 'Fleet X Parts', type: 'website' },
+    openGraph: {
+      title,
+      description,
+      siteName: 'Fleet X Parts',
+      type: 'website',
+      ...(found.image_url?.startsWith('http') ? { images: [found.image_url] } : {}),
+    },
   };
 }
 
 export default async function ProductPage({ params }: Props) {
   const { category, product } = await params;
-  const found = getDummyProduct(category, product);
-  if (!found) notFound();
 
-  return <ProductDetail category={found.category} product={found.product} />;
+  let found: Product | null;
+  try {
+    found = await getProduct(product);
+  } catch (err) {
+    return <CatalogUnavailable error={err} />;
+  }
+  if (!found) notFound();
+  // keep one canonical URL per product
+  if ((found.category?.slug ?? 'parts') !== category) permanentRedirect(productUrl(found));
+
+  return <ProductDetail product={found} />;
 }

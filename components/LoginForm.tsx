@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
+
+/** Only allow same-site relative redirects (?next=/checkout). */
+const safeNext = (value: string | null) =>
+  value && value.startsWith('/') && !value.startsWith('//') ? value : '/account';
 
 const INPUT_CLASS =
   'appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#00a550] focus:border-[#00a550] sm:text-sm';
@@ -19,7 +23,15 @@ export default function LoginForm() {
   const [otpCode, setOtpCode] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
   const router = useRouter();
-  const { login, verifyOTP, resendOTP } = useAuth();
+  const searchParams = useSearchParams();
+  const next = safeNext(searchParams.get('next'));
+  const justReset = searchParams.get('reset') === '1';
+  const { login, verifyOTP, resendOTP, isAuthenticated, loading: authLoading } = useAuth();
+
+  // Already signed in? Go straight on.
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && !showOTPModal) router.replace(next);
+  }, [authLoading, isAuthenticated, next, router, showOTPModal]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,7 +50,7 @@ export default function LoginForm() {
           setShowOTPModal(true);
           setLoading(false);
         } else {
-          router.push('/');
+          router.push(next);
         }
       } else {
         setError(result.message || 'Login failed');
@@ -66,7 +78,7 @@ export default function LoginForm() {
       const result = await verifyOTP(email, otpCode);
 
       if (result.success) {
-        router.push('/');
+        router.push(next);
       } else {
         setError(result.message || 'Invalid OTP');
         setOtpLoading(false);
@@ -114,6 +126,11 @@ export default function LoginForm() {
         </div>
 
         <form className="mt-8 space-y-7" onSubmit={handleSubmit}>
+          {justReset && !error && (
+            <div role="status" className="bg-green-50 border border-green-400 text-green-700 px-4 py-3 rounded text-sm">
+              Your password was reset. Please log in with your new password.
+            </div>
+          )}
           {error && !showOTPModal && (
             <div
               role="alert"
@@ -143,12 +160,14 @@ export default function LoginForm() {
               />
             </div>
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                Password
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <Link href="/forgot-password" className="text-xs text-[#00a550] hover:underline">
+                  Forgot password?
+                </Link>
+              </div>
               <input
                 id="password"
                 type="password"
@@ -178,7 +197,10 @@ export default function LoginForm() {
 
           <p className="text-sm text-center text-gray-600">
             Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-[#00a550] font-medium hover:underline">
+            <Link
+              href={next !== '/account' ? `/signup?next=${encodeURIComponent(next)}` : '/signup'}
+              className="text-[#00a550] font-medium hover:underline"
+            >
               Sign up
             </Link>
           </p>

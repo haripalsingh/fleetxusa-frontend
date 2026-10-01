@@ -2,24 +2,15 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-import type { DummyCategory, DummyProduct } from '@/lib/dummyProducts';
+import { api, priceRange, productUrl } from '@/lib/api';
+import type { Category, ProductListResult, ProductSummary } from '@/lib/types';
 
-type SortKey = 'best' | 'price-asc' | 'price-desc' | 'name';
+type SortKey = 'best' | 'price-asc' | 'price-desc' | 'name' | 'newest';
 
-const money = (n: number) =>
-  n.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-
-const priceLabel = (p: DummyProduct) =>
-  p.priceMax > p.priceMin ? `${money(p.priceMin)}-${money(p.priceMax)}` : money(p.priceMin);
-
-const countBy = (products: DummyProduct[], key: 'type' | 'color' | 'categoryName') => {
-  const map = new Map<string, number>();
-  products.forEach((p) => map.set(p[key], (map.get(p[key]) ?? 0) + 1));
-  return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
-};
+const priceLabel = (p: ProductSummary) => priceRange(p.price_min, p.price_max);
 
 const RANGE_CLASS =
   'absolute inset-0 w-full h-full appearance-none bg-transparent pointer-events-none ' +
@@ -64,22 +55,22 @@ const CheckList = ({
   selected,
   onToggle,
 }: {
-  options: [string, number][];
+  options: { value: string; label: string; count: number }[];
   selected: Set<string>;
   onToggle: (value: string) => void;
 }) => (
   <ul className="max-h-[260px] overflow-y-auto pr-2">
-    {options.map(([value, count]) => (
-      <li key={value}>
+    {options.map((o) => (
+      <li key={o.value}>
         <label className="flex items-center gap-3 py-1.5 cursor-pointer text-[15px] text-gray-900">
           <input
             type="checkbox"
-            checked={selected.has(value)}
-            onChange={() => onToggle(value)}
+            checked={selected.has(o.value)}
+            onChange={() => onToggle(o.value)}
             className="h-5 w-5 shrink-0 accent-[#00a550]"
           />
           <span>
-            {value} <span className="text-gray-500">({count})</span>
+            {o.label} <span className="text-gray-500">({o.count})</span>
           </span>
         </label>
       </li>
@@ -90,32 +81,83 @@ const CheckList = ({
 
 export default function ProductListing({
   category,
-  products,
+  initial,
+  query = '',
 }: {
   /** Omit to show every product (the /products page). */
-  category?: DummyCategory;
-  products: DummyProduct[];
+  category?: Category | null;
+  /** First page rendered on the server. */
+  initial: ProductListResult;
+  /** Search term from ?q= */
+  query?: string;
 }) {
+  const [result, setResult] = useState<ProductListResult>(initial);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const bounds = useMemo(() => {
-    const max = Math.ceil(Math.max(...products.map((p) => p.priceMax)) / 10) * 10;
+    const max = Math.max(10, Math.ceil((initial.facets?.price.max ?? 0) / 10) * 10);
     return { min: 0, max };
-  }, [products]);
+  }, [initial.facets]);
+  const facets = result.facets ?? initial.facets;
 
-  const typeCounts = useMemo(() => countBy(products, 'type'), [products]);
-  const colorCounts = useMemo(() => countBy(products, 'color'), [products]);
-  const categoryCounts = useMemo(() => countBy(products, 'categoryName'), [products]);
-
-  const [lookup, setLookup] = useState('');
   const [types, setTypes] = useState<Set<string>>(new Set());
   const [colors, setColors] = useState<Set<string>>(new Set());
   const [cats, setCats] = useState<Set<string>>(new Set());
+  const [brands, setBrands] = useState<Set<string>>(new Set());
   const [low, setLow] = useState(bounds.min);
   const [high, setHigh] = useState(bounds.max);
-  const [perPage, setPerPage] = useState(24);
+  const [perPage, setPerPage] = useState(initial.meta.per_page || 24);
   const [sort, setSort] = useState<SortKey>('best');
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const gridTop = useRef<HTMLDivElement>(null);
+  const firstRender = useRef(true);
+
+  const priceActive = low > bounds.min || high < bounds.max;
+  const filtersActive = cats.size > 0 || types.size > 0 || colors.size > 0 || brands.size > 0 || priceActive;
+
+  // Fetch whenever a filter changes (debounced so dragging the price slider doesn't spam the API)
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const res = await api<ProductSummary[]>('/products', {
+          signal: controller.signal,
+          query: {
+            category: category?.slug,
+            categories: [...cats],
+            q: query,
+            type: [...types],
+            color: [...colors],
+            brand: [...brands],
+            min_price: priceActive ? low : null,
+            max_price: priceActive ? high : null,
+            sort,
+            page,
+            per_page: perPage,
+          },
+        });
+        setResult({ data: res.data, meta: res.meta as ProductListResult['meta'], facets: res.facets! });
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === 'AbortError')) {
+          setError(err instanceof Error ? err.message : 'Could not load products.');
+        }
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    }, 250);
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
+  }, [category?.slug, cats, types, colors, brands, low, high, priceActive, sort, page, perPage, query]);
 
   const toggle = (setter: typeof setTypes) => (value: string) => {
     setter((prev) => {
@@ -133,32 +175,11 @@ export default function ProductListing({
     setPage(1);
   };
 
-  const filtered = useMemo(() => {
-    let list = products.filter(
-      (p) =>
-        (cats.size === 0 || cats.has(p.categoryName)) &&
-        (types.size === 0 || types.has(p.type)) &&
-        (colors.size === 0 || colors.has(p.color)) &&
-        p.priceMax >= low &&
-        p.priceMin <= high
-    );
-    if (sort === 'price-asc') list = [...list].sort((a, b) => a.priceMin - b.priceMin);
-    if (sort === 'price-desc') list = [...list].sort((a, b) => b.priceMin - a.priceMin);
-    if (sort === 'name') list = [...list].sort((a, b) => a.name.localeCompare(b.name));
-    return list;
-  }, [products, cats, types, colors, low, high, sort]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
-  const current = Math.min(page, totalPages);
-  const start = (current - 1) * perPage;
-  const visible = filtered.slice(start, start + perPage);
-  const filtersActive = cats.size > 0 || types.size > 0 || colors.size > 0 || low > bounds.min || high < bounds.max;
-
   const clearFilters = () => {
     setCats(new Set());
     setTypes(new Set());
     setColors(new Set());
-    setLookup('');
+    setBrands(new Set());
     setLow(bounds.min);
     setHigh(bounds.max);
     setPage(1);
@@ -169,19 +190,25 @@ export default function ProductListing({
     gridTop.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const visibleTypes = typeCounts.filter(([t]) => t.toLowerCase().includes(lookup.trim().toLowerCase()));
+  const { data: products, meta } = result;
+  const totalPages = meta.total_pages;
+  const current = meta.page;
+  const start = (current - 1) * meta.per_page;
+
   const pct = (v: number) => ((v - bounds.min) / (bounds.max - bounds.min)) * 100;
 
   const pageButtons = Array.from({ length: totalPages }, (_, i) => i + 1).filter(
     (n) => n === 1 || n === totalPages || Math.abs(n - current) <= 1
   );
 
+  const title = query ? `Search results for “${query}”` : category ? category.name : 'All Products';
+
   return (
     <div className="w-full bg-[#f0f0f0] font-display">
       <div className="max-w-[1500px] mx-auto px-4 py-6 md:py-8">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6 text-sm text-gray-600">
-          {category ? (
+          {category || query ? (
             <>
               <Link href="/products" className="hover:text-[#00a550]">
                 All Products
@@ -189,13 +216,13 @@ export default function ProductListing({
               <span className="mx-2" aria-hidden="true">
                 &rsaquo;
               </span>
-              <span className="font-semibold text-gray-900">{category.name}</span>
+              <span className="font-semibold text-gray-900">{title}</span>
             </>
           ) : (
             <span className="font-semibold text-gray-900">All Products</span>
           )}
         </nav>
-        <h1 className="sr-only">{category ? category.name : 'All Products'}</h1>
+        <h1 className={query ? 'text-2xl font-bold text-gray-900 mb-6' : 'sr-only'}>{title}</h1>
 
         <button
           type="button"
@@ -210,23 +237,15 @@ export default function ProductListing({
         <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] xl:grid-cols-[350px_1fr] gap-6 lg:gap-8">
           {/* ---- Filters ---- */}
           <aside className={`${filtersOpen ? 'block' : 'hidden'} lg:block`}>
-            {!category && (
-              <Panel title="Category">
-                <CheckList options={categoryCounts} selected={cats} onToggle={toggle(setCats)} />
+            {facets.brands.length > 0 && (
+              <Panel title="Brand">
+                <CheckList
+                  options={facets.brands.map((c) => ({ value: c.value, label: c.value, count: c.count }))}
+                  selected={brands}
+                  onToggle={toggle(setBrands)}
+                />
               </Panel>
             )}
-
-            <Panel title="Product Type">
-              <input
-                type="search"
-                value={lookup}
-                onChange={(e) => setLookup(e.target.value)}
-                placeholder="Quick Lookup"
-                aria-label="Quick lookup product type"
-                className="w-full mb-5 px-4 py-3 border border-gray-300 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-[#00a550]"
-              />
-              <CheckList options={visibleTypes} selected={types} onToggle={toggle(setTypes)} />
-            </Panel>
 
             <Panel title="Price Retail">
               <div className="grid grid-cols-2 gap-6 mb-8">
@@ -277,10 +296,6 @@ export default function ProductListing({
               </div>
             </Panel>
 
-            <Panel title="Color">
-              <CheckList options={colorCounts} selected={colors} onToggle={toggle(setColors)} />
-            </Panel>
-
             {filtersActive && (
               <button
                 type="button"
@@ -293,12 +308,12 @@ export default function ProductListing({
           </aside>
 
           {/* ---- Results ---- */}
-          <main>
+          <main aria-busy={loading}>
             <div ref={gridTop} className="scroll-mt-4" />
             <p className="text-2xl md:text-3xl text-gray-800 mb-6">
-              {filtered.length === 0
+              {meta.total === 0
                 ? 'Showing 0 of 0'
-                : `Showing ${start + 1}-${Math.min(start + perPage, filtered.length)} of ${filtered.length}`}
+                : `Showing ${start + 1}-${Math.min(start + meta.per_page, meta.total)} of ${meta.total}`}
             </p>
 
             <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
@@ -330,6 +345,7 @@ export default function ProductListing({
                   className="bg-transparent text-gray-900 focus:outline-none"
                 >
                   <option value="best">Best Match</option>
+                  <option value="newest">Newest</option>
                   <option value="price-asc">Price: Low to High</option>
                   <option value="price-desc">Price: High to Low</option>
                   <option value="name">Name: A to Z</option>
@@ -337,35 +353,54 @@ export default function ProductListing({
               </label>
             </div>
 
-            {visible.length === 0 ? (
+            {error && (
+              <div role="alert" className="mb-5 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
+            {products.length === 0 ? (
               <div className="bg-white py-16 text-center text-gray-700">
-                <p className="mb-4">No products match your filters.</p>
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#e9e611] to-[#00a34f] hover:opacity-90"
-                >
-                  Clear all filters
-                </button>
+                <p className="mb-4">{filtersActive ? 'No products match your filters.' : 'No products found.'}</p>
+                {filtersActive && (
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#e9e611] to-[#00a34f] hover:opacity-90"
+                  >
+                    Clear all filters
+                  </button>
+                )}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {visible.map((p) => (
+              <div
+                className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity ${
+                  loading ? 'opacity-50' : ''
+                }`}
+              >
+                {products.map((p) => (
                   <Link
                     key={p.id}
-                    href={`/products/${p.categorySlug}/${p.id}`}
+                    href={productUrl(p)}
                     className="group flex flex-col bg-white shadow-sm transition-shadow hover:shadow-lg"
                   >
-                    <div className="aspect-square w-full overflow-hidden">
+                    <div className="relative aspect-square w-full overflow-hidden">
                       <img
-                        src={p.image}
+                        src={p.image_url || '/images/fleet-x-icon.png'}
                         alt={p.name}
                         loading="lazy"
                         className="h-full w-full object-cover"
                       />
+                      {!p.in_stock && (
+                        <span className="absolute left-2 top-2 bg-black/80 px-2 py-1 text-[11px] font-bold uppercase text-white">
+                          Out of stock
+                        </span>
+                      )}
                     </div>
                     <div className="flex flex-1 flex-col items-center px-3 pt-5 pb-6 text-center">
-                      <h2 className="text-[15px] leading-snug text-gray-900 group-hover:text-[#00a550] transition-colors">{p.name}</h2>
+                      <h2 className="text-[15px] leading-snug text-gray-900 group-hover:text-[#00a550] transition-colors">
+                        {p.name}
+                      </h2>
                       <p className="mt-3 text-[15px] text-gray-500">{p.brand}</p>
                       <p className="mt-auto pt-4 text-[15px] font-bold text-red-600">{priceLabel(p)}</p>
                     </div>

@@ -25,12 +25,12 @@ const NAV_MENUS: Record<string, NavMenu> = {
   products: {
     type: 'simple',
     links: [
-      { label: 'Cooling System', to: '/products/cooling-systems' },
-      { label: 'Steering System', to: '/products/steering-system' },
-      { label: 'Body and Cabin', to: '/products/body-and-cabin' },
-      { label: 'Air Spring & Shocks', to: '/products/air-spring-shocks' },
-      { label: 'Air Brake & Wheel', to: '/products/air-brake-wheel' },
-      { label: 'Chrome & Stainless', to: '/products/chrome-stainless' }
+      { label: 'Clamps', to: '/products/clamps' },
+      { label: 'Filters', to: '/products/filters' },
+      { label: 'Hoses', to: '/products/hoses' },
+      { label: 'Seals', to: '/products/seals' },
+      { label: 'All Categories', to: '/categories' },
+      { label: 'Shop by Diagram', to: '/parts-diagrams' }
     ]
   },
   about: {
@@ -64,7 +64,6 @@ const NAV_MENUS: Record<string, NavMenu> = {
 
 const NAV_ORDER = [
   { key: 'products', label: 'Products' },
-  { key: 'about', label: 'About Us' },
   { key: 'resources', label: 'Resources' },
   { key: 'contact', label: 'Contact Us' }
 ];
@@ -152,8 +151,13 @@ const Header = ({ phone = '(000) 000-0000' }: HeaderProps) => {
   }, [pathname]);
 
   const updateCartCount = () => {
-    const cart: CartItem[] = JSON.parse(localStorage.getItem('cart') || '[]');
-    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    let cart: CartItem[] = [];
+    try {
+      cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    } catch {
+      cart = [];
+    }
+    const totalItems = Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.quantity || 0), 0) : 0;
     setCartCount(totalItems);
   };
 
@@ -364,14 +368,15 @@ const Header = ({ phone = '(000) 000-0000' }: HeaderProps) => {
           React.createElement(
             'div',
             { className: 'px-4 py-3 border-b border-gray-200' },
-            React.createElement('p', { className: 'text-sm font-semibold text-gray-900 truncate' }, user?.email),
-            React.createElement('p', { className: 'text-xs text-gray-500 mt-1' }, 'Manage your account')
+            React.createElement('p', { className: 'text-sm font-semibold text-gray-900 truncate' }, user?.name),
+            React.createElement('p', { className: 'text-xs text-gray-500 mt-1 truncate' }, user?.email)
           ),
           [
-            { label: 'Profile', path: '/profile' },
-            { label: 'My Orders', path: '/my-orders' },
-            { label: 'My Addresses', path: '/my-addresses' },
-            { label: 'Change Password', path: '/change-password' }
+            { label: 'My Account', path: '/account' },
+            { label: 'My Orders', path: '/account/orders' },
+            { label: 'My Addresses', path: '/account/addresses' },
+            { label: 'Profile', path: '/account/profile' },
+            { label: 'Change Password', path: '/account/password' }
           ].map((item, i) =>
             React.createElement(
               'button',
