@@ -11,8 +11,8 @@ import { formatMoney, refreshCart, useCart } from '@/lib/cart';
 import { useAuth } from '@/context/AuthContext';
 import type { Address, Order, PaymentMethod, Totals } from '@/lib/types';
 
-type Step = 'customer' | 'shipping' | 'billing' | 'payment';
-const ORDER: Step[] = ['customer', 'shipping', 'billing', 'payment'];
+type Step = 'shipping' | 'billing' | 'payment';
+const ORDER: Step[] = ['shipping', 'billing', 'payment'];
 
 type AddressForm = Omit<Address, 'id' | 'label' | 'is_default' | 'address_line2'> & { address_line2: string };
 type Errors = Partial<Record<keyof AddressForm, string>>;
@@ -154,10 +154,10 @@ export default function CheckoutForm() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { items, ready, count, issues, totals: cartTotals } = useCart();
 
-  const [step, setStep] = useState<Step>('customer');
+  const [step, setStep] = useState<Step>('shipping');
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const [newsletter, setNewsletter] = useState(true);
+  const newsletter = false; // newsletter checkbox removed from checkout
   const [savedAddresses, setSavedAddresses] = useState<Address[]>([]);
   const [shipping, setShipping] = useState<AddressForm>(EMPTY_ADDRESS);
   const [shippingErrors, setShippingErrors] = useState<Errors>({});
@@ -198,7 +198,6 @@ export default function CheckoutForm() {
       .catch(() => undefined)
       .finally(() => {
         setEmail((e) => e || user.email);
-        setStep((s) => (s === 'customer' ? 'shipping' : s));
       });
   }, [user]);
 
@@ -209,21 +208,13 @@ export default function CheckoutForm() {
   const totals = coupon?.totals ?? cartTotals;
   const showShipping = reached('shipping');
 
-  const submitEmail = (e: FormEvent) => {
-    e.preventDefault();
-    if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
-      setEmailError('Please enter a valid email address');
-      return;
-    }
-    setEmailError('');
-    setStep('shipping');
-  };
-
   const submitShipping = (e: FormEvent) => {
     e.preventDefault();
     const errs = validateAddress(shipping);
     setShippingErrors(errs);
-    if (Object.keys(errs).length === 0) setStep('billing');
+    const emailOk = /^\S+@\S+\.\S+$/.test(email.trim());
+    setEmailError(emailOk ? '' : 'Please enter a valid email address');
+    if (emailOk && Object.keys(errs).length === 0) setStep('billing');
   };
 
   const submitBilling = (e: FormEvent) => {
@@ -310,7 +301,7 @@ export default function CheckoutForm() {
           setStep('billing');
         } else if (err.errors.email) {
           setEmailError(err.errors.email);
-          setStep('customer');
+          setStep('shipping');
         } else if (err.errors.coupon_code) {
           setCoupon(null);
           setCouponMessage(err.errors.coupon_code);
@@ -362,55 +353,6 @@ export default function CheckoutForm() {
             )}
 
             <Section
-              title="Customer"
-              active={step === 'customer'}
-              done={reached('customer')}
-              summary={<p>{email}</p>}
-              onEdit={() => setStep('customer')}
-            >
-              <form onSubmit={submitEmail} noValidate>
-                <label htmlFor="checkout-email" className="block mb-1 text-sm text-gray-700">
-                  Email
-                </label>
-                <div className="flex flex-col xl:flex-row gap-4 xl:items-start">
-                  <div className="flex-1 min-w-0">
-                    <input
-                      id="checkout-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      autoComplete="email"
-                      className={`${INPUT} h-[42px]`}
-                    />
-                    {emailError && <span className="mt-1 block text-xs text-red-600">{emailError}</span>}
-                  </div>
-                  <button type="submit" className={`${BTN} xl:w-[338px]`}>
-                    Continue
-                  </button>
-                </div>
-
-                <label className="mt-5 flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={newsletter}
-                    onChange={(e) => setNewsletter(e.target.checked)}
-                    className="h-4 w-4 accent-[#00a550]"
-                  />
-                  Subscribe to our newsletter.
-                </label>
-                {!isAuthenticated && (
-                  <p className="mt-4 text-sm text-gray-700">
-                    Already have an account?{' '}
-                    <Link href="/login?next=/checkout" className="text-[#00a550] hover:underline">
-                      Sign in now
-                    </Link>{' '}
-                    - or continue as a guest.
-                  </p>
-                )}
-              </form>
-            </Section>
-
-            <Section
               title="Shipping"
               active={step === 'shipping'}
               done={reached('shipping')}
@@ -418,6 +360,23 @@ export default function CheckoutForm() {
               onEdit={() => setStep('shipping')}
             >
               <form onSubmit={submitShipping} noValidate>
+                {!isAuthenticated && (
+                  <label className="mb-5 block">
+                    <span className="block mb-1 text-sm text-gray-700">Email</span>
+                    <input
+                      id="checkout-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => {
+                        setEmail(e.target.value);
+                        setEmailError('');
+                      }}
+                      autoComplete="email"
+                      className={INPUT}
+                    />
+                    {emailError && <span className="mt-1 block text-xs text-red-600">{emailError}</span>}
+                  </label>
+                )}
                 {savedAddresses.length > 0 && (
                   <label className="mb-5 block">
                     <span className="block mb-1 text-sm text-gray-700">Use a saved address</span>

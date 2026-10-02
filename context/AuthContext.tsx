@@ -18,7 +18,9 @@ export type SignUpData = {
   email: string;
   password: string;
   password_confirmation: string;
-  role: 'vendor' | 'dealer' | 'user';
+  role: 'dealer' | 'user';
+  /** required when role is 'dealer' */
+  company_name?: string;
   newsletter?: boolean;
 };
 

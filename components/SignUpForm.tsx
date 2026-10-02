@@ -10,13 +10,12 @@ import type { SignUpData } from '@/context/AuthContext';
 const ROLE_OPTIONS: { value: SignUpData['role']; label: string }[] = [
   { value: 'user', label: 'Normal User' },
   { value: 'dealer', label: 'Dealer' },
-  { value: 'vendor', label: 'Vendor' },
 ];
 
 const INPUT_CLASS =
   'appearance-none relative block w-full px-4 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-[#00a550] focus:border-[#00a550] sm:text-sm';
 
-const EMPTY_FORM = { name: '', mobile: '', email: '', role: '', password: '', password_confirmation: '' };
+const EMPTY_FORM = { name: '', mobile: '', email: '', role: '', password: '', password_confirmation: '', company_name: '' };
 type FormKey = keyof typeof EMPTY_FORM;
 
 const safeNext = (value: string | null) =>
@@ -24,7 +23,6 @@ const safeNext = (value: string | null) =>
 
 export default function SignUpForm() {
   const [form, setForm] = useState(EMPTY_FORM);
-  const [newsletter, setNewsletter] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<FormKey, string>>>({});
   const [loading, setLoading] = useState(false);
@@ -52,6 +50,7 @@ export default function SignUpForm() {
     if (form.password.length < 8 || !/[A-Za-z]/.test(form.password) || !/\d/.test(form.password))
       errs.password = 'At least 8 characters with a letter and a number';
     if (form.password !== form.password_confirmation) errs.password_confirmation = 'Passwords do not match';
+    if (form.role === 'dealer' && form.company_name.trim().length < 2) errs.company_name = 'Please enter your company name';
     return errs;
   };
 
@@ -70,7 +69,7 @@ export default function SignUpForm() {
       role: form.role as SignUpData['role'],
       password: form.password,
       password_confirmation: form.password_confirmation,
-      newsletter,
+      ...(form.role === 'dealer' ? { company_name: form.company_name.trim() } : {}),
     });
     setLoading(false);
 
@@ -87,7 +86,7 @@ export default function SignUpForm() {
 
   return (
     <div className="flex-1 bg-gray-50 font-display flex items-center justify-center py-16 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-10">
+      <div className="max-w-lg w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sm:p-10">
         <div className="text-center">
           <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900">Create your account</h1>
           <div className="w-16 h-1 bg-gradient-to-r from-[#00a550] to-[#f8ef05] mx-auto mt-4" />
@@ -126,6 +125,22 @@ export default function SignUpForm() {
             </div>
 
             <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input id="password" name="password" type="password" required autoComplete="new-password" value={form.password} onChange={handleChange} className={INPUT_CLASS} placeholder="At least 8 characters" />
+              {fieldError('password')}
+            </div>
+
+            <div>
+              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm password
+              </label>
+              <input id="password_confirmation" name="password_confirmation" type="password" required autoComplete="new-password" value={form.password_confirmation} onChange={handleChange} className={INPUT_CLASS} placeholder="Repeat your password" />
+              {fieldError('password_confirmation')}
+            </div>
+
+            <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
                 Account type
               </label>
@@ -142,26 +157,15 @@ export default function SignUpForm() {
               {fieldError('role')}
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input id="password" name="password" type="password" required autoComplete="new-password" value={form.password} onChange={handleChange} className={INPUT_CLASS} placeholder="At least 8 characters" />
-              {fieldError('password')}
-            </div>
-
-            <div>
-              <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm password
-              </label>
-              <input id="password_confirmation" name="password_confirmation" type="password" required autoComplete="new-password" value={form.password_confirmation} onChange={handleChange} className={INPUT_CLASS} placeholder="Repeat your password" />
-              {fieldError('password_confirmation')}
-            </div>
-
-            <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-              <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="h-4 w-4 accent-[#00a550]" />
-              Send me deals and new product updates
-            </label>
+            {form.role === 'dealer' && (
+              <div>
+                <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 mb-1">
+                  {/* Company name <span className="text-red-600">*</span> */}
+                </label>
+                <input id="company_name" name="company_name" type="text" required autoComplete="organization" value={form.company_name} onChange={handleChange} className={INPUT_CLASS} placeholder="Enter your company name" />
+                {fieldError('company_name')}
+              </div>
+            )}
           </div>
 
           <button

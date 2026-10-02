@@ -27,7 +27,7 @@ const ProductCategories = async () => {
     : FALLBACK;
 
   return (
-    <section className="w-full bg-white py-16 md:py-24">
+    <section className="w-full bg-[#f7f7f7] py-16 md:py-24">
       <div className="max-w-7xl mx-auto px-4 md:px-0">
         {/* Section heading */}
         <div className="flex items-start justify-between gap-4 mb-10">
@@ -53,7 +53,7 @@ const ProductCategories = async () => {
               href={`/products/${category.slug}`}
               className="group block"
             >
-              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl bg-black">
+              <div className="relative aspect-[16/9] w-full overflow-hidden rounded-xl shadow-lg bg-[#f7f7f7] transition-shadow duration-500 group-hover:shadow-2xl ">
                 {category.image.startsWith('/') ? (
                   <Image
                     src={category.image}
@@ -67,7 +67,7 @@ const ProductCategories = async () => {
                     src={category.image}
                     alt={category.title}
                     loading="lazy"
-                    className="absolute inset-0 h-full w-full object-contain bg-[#e6e9e8] transition-transform duration-500 group-hover:scale-105"
+                    className="absolute inset-0 h-full w-full object-contain bg-[#ffffff] transition-transform duration-500 group-hover:scale-105"
                   />
                 )}
               </div>

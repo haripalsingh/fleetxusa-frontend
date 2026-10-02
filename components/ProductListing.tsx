@@ -26,7 +26,7 @@ const RANGE_CLASS =
 const Panel = ({ title, children }: { title: string; children: ReactNode }) => {
   const [open, setOpen] = useState(true);
   return (
-    <section className="mb-6 shadow-sm">
+    <section className="mb-6 overflow-hidden rounded-xl bg-white shadow-sm">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -207,7 +207,7 @@ export default function ProductListing({
     <div className="w-full bg-[#f0f0f0] font-display">
       <div className="max-w-[1500px] mx-auto px-4 py-6 md:py-8">
         {/* Breadcrumb */}
-        <nav aria-label="Breadcrumb" className="mb-6 text-sm text-gray-600">
+        <nav aria-label="Breadcrumb" className="mb-6 text-gray-600 text-lg">
           {category || query ? (
             <>
               <Link href="/products" className="hover:text-[#00a550]">
@@ -228,7 +228,7 @@ export default function ProductListing({
           type="button"
           onClick={() => setFiltersOpen((v) => !v)}
           aria-expanded={filtersOpen}
-          className="lg:hidden mb-6 w-full flex items-center justify-between bg-black text-white px-5 py-3 font-bold uppercase"
+          className="lg:hidden mb-6 w-full rounded-xl flex items-center justify-between bg-black text-white px-5 py-3 font-bold uppercase"
         >
           Filters{filtersActive ? ' (active)' : ''}
           <span aria-hidden="true">{filtersOpen ? '−' : '+'}</span>
@@ -253,7 +253,7 @@ export default function ProductListing({
                   { label: 'Minimum price', value: low, set: (v: number) => setPrice(v, high) },
                   { label: 'Maximum price', value: high, set: (v: number) => setPrice(low, v) },
                 ].map((f) => (
-                  <label key={f.label} className="flex items-center border border-gray-300 px-3 py-3 text-gray-900">
+                  <label key={f.label} className="flex items-center rounded-lg border border-gray-300 px-3 py-3 text-gray-900">
                     <span className="mr-1">$</span>
                     <input
                       type="number"
@@ -300,7 +300,7 @@ export default function ProductListing({
               <button
                 type="button"
                 onClick={clearFilters}
-                className="w-full border border-gray-400 bg-white py-3 text-sm font-semibold text-gray-900 hover:border-[#00a550] hover:text-[#00a550]"
+                className="w-full rounded-xl border border-gray-400 bg-white py-3 text-sm font-semibold text-gray-900 hover:border-[#00a550] hover:text-[#00a550]"
               >
                 Clear all filters
               </button>
@@ -317,7 +317,7 @@ export default function ProductListing({
             </p>
 
             <div className="flex flex-wrap items-center justify-between gap-4 mb-5">
-              <label className="flex items-center gap-3 bg-white border border-gray-200 px-5 py-4 text-gray-500">
+              <label className="flex items-center gap-3 bg-white border border-gray-200 px-5 py-4 text-gray-500 rounded-md">
                 <span>Products Per Page:</span>
                 <select
                   value={perPage}
@@ -334,7 +334,7 @@ export default function ProductListing({
                   ))}
                 </select>
               </label>
-              <label className="flex items-center gap-3 bg-white border border-gray-200 px-5 py-4 text-gray-500">
+              <label className="flex items-center gap-3 bg-white border border-gray-200 px-5 py-4 text-gray-500 rounded-md">
                 <span>Sort By:</span>
                 <select
                   value={sort}
@@ -374,7 +374,7 @@ export default function ProductListing({
               </div>
             ) : (
               <div
-                className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 transition-opacity ${
+                className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 transition-opacity ${
                   loading ? 'opacity-50' : ''
                 }`}
               >
@@ -382,27 +382,27 @@ export default function ProductListing({
                   <Link
                     key={p.id}
                     href={productUrl(p)}
-                    className="group flex flex-col bg-white shadow-sm transition-shadow hover:shadow-lg"
+                    className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-shadow hover:shadow-lg"
                   >
-                    <div className="relative aspect-square w-full overflow-hidden">
+                    <div className="relative aspect-square w-full overflow-hidden bg-white p-5">
                       <img
                         src={p.image_url || '/images/fleet-x-icon.png'}
                         alt={p.name}
                         loading="lazy"
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
                       />
                       {!p.in_stock && (
-                        <span className="absolute left-2 top-2 bg-black/80 px-2 py-1 text-[11px] font-bold uppercase text-white">
+                        <span className="absolute left-3 top-3 rounded bg-black/80 px-2 py-1 text-[11px] font-bold uppercase text-white">
                           Out of stock
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-1 flex-col items-center px-3 pt-5 pb-6 text-center">
-                      <h2 className="text-[15px] leading-snug text-gray-900 group-hover:text-[#00a550] transition-colors">
+                    <div className="flex flex-1 flex-col items-center gap-1.5 border-t border-gray-100 px-4 pt-4 pb-5 text-center">
+                      <h2 className="line-clamp-2 min-h-[2.75rem] text-[17px] font-bold uppercase leading-snug text-[#878787] transition-colors group-hover:text-[#00a550]">
                         {p.name}
                       </h2>
-                      <p className="mt-3 text-[15px] text-gray-500">{p.brand}</p>
-                      <p className="mt-auto pt-4 text-[15px] font-bold text-red-600">{priceLabel(p)}</p>
+                      {p.brand && <p className="text-[15px] text-gray-400">{p.brand}</p>}
+                      <p className="mt-auto pt-2 text-[18px] font-bold text-gray-900">{priceLabel(p)}</p>
                     </div>
                   </Link>
                 ))}
@@ -410,12 +410,12 @@ export default function ProductListing({
             )}
 
             {totalPages > 1 && (
-              <nav aria-label="Pagination" className="mt-8 flex flex-wrap items-center justify-center gap-2">
+              <nav aria-label="Pagination" className="mt-10 flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
                   disabled={current === 1}
                   onClick={() => goTo(current - 1)}
-                  className="px-4 py-2 bg-white border border-gray-300 text-sm disabled:opacity-40"
+                  className="h-10 rounded-md px-4 bg-white border border-gray-300 text-sm text-gray-900 hover:border-[#00a550] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Prev
                 </button>
@@ -426,7 +426,7 @@ export default function ProductListing({
                       type="button"
                       onClick={() => goTo(n)}
                       aria-current={n === current ? 'page' : undefined}
-                      className={`h-10 min-w-10 px-3 border text-sm ${
+                      className={`h-10 min-w-10 px-3 border text-sm rounded-md ${
                         n === current
                           ? 'bg-black text-white border-black'
                           : 'bg-white border-gray-300 text-gray-900 hover:border-[#00a550]'
@@ -440,7 +440,7 @@ export default function ProductListing({
                   type="button"
                   disabled={current === totalPages}
                   onClick={() => goTo(current + 1)}
-                  className="px-4 py-2 bg-white border border-gray-300 text-sm disabled:opacity-40"
+                  className="h-10 rounded-md px-4 bg-white border border-gray-300 text-sm text-gray-900 hover:border-[#00a550] disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next
                 </button>

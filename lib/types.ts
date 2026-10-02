@@ -140,6 +140,7 @@ export type User = {
   email: string;
   mobile: string | null;
   role: 'user' | 'dealer' | 'vendor' | 'admin';
+  company_name?: string | null;
   newsletter: boolean;
   created_at: string | null;
   stats?: { orders: number; total_spent: number };

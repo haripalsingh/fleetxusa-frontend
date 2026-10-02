@@ -366,12 +366,12 @@ export default function ProductDetail({ product }: { product: Product }) {
             <h2 className="mb-5 text-xl font-bold uppercase text-gray-900">You may also need</h2>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {product.related.map((p) => (
-                <Link key={p.id} href={productUrl(p)} className="group flex flex-col bg-white shadow-sm hover:shadow-lg transition-shadow">
+                <Link key={p.id} href={productUrl(p)} className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm hover:shadow-lg transition-shadow">
                   <div className="aspect-square overflow-hidden">
                     <img src={p.image_url || PLACEHOLDER} alt={p.name} loading="lazy" className="h-full w-full object-cover" />
                   </div>
                   <div className="flex flex-1 flex-col items-center px-3 pt-4 pb-5 text-center">
-                    <h3 className="text-sm text-gray-900 group-hover:text-[#00a550]">{p.name}</h3>
+                    <h3 className="text-md text-black font-bold group-hover:text-[#00a550]">{p.name}</h3>
                     <p className="mt-auto pt-3 text-sm font-bold text-red-600">
                       {priceRange(p.price_min, p.price_max)}
                     </p>
