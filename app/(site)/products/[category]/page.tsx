@@ -1,5 +1,6 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import ProductListing from '@/components/ProductListing';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
 import { getCategory, getProducts } from '@/lib/catalog';
@@ -13,12 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!cat) return {};
   const title = cat.meta_title || `${cat.name} | Fleet X Parts`;
   const description = cat.meta_description || cat.description || `Shop ${cat.name} parts for heavy-duty trucks at Fleet X Parts.`;
-  return {
-    title,
-    description,
-    robots: { index: true, follow: true },
-    openGraph: { title, description, siteName: 'Fleet X Parts', type: 'website' },
-  };
+  return pageMetadata({ title, description, path: `/products/${cat.slug}`, image: cat.image_url });
 }
 
 export default async function CategoryPage({ params }: Props) {

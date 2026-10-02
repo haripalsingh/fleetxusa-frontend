@@ -1,17 +1,17 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import PolicyPage from '@/components/PolicyPage';
 import type { PolicySection } from '@/components/PolicyPage';
 
 const DESCRIPTION =
   `Read our cancellation and refund policy, including restocking fees and eligibility windows.`;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Cancellation & Refund Policy | Fleet X Parts',
   description: DESCRIPTION,
   keywords: 'cancellation policy, refund policy, restocking fee',
-  robots: { index: true, follow: true },
-  openGraph: { title: 'Cancellation & Refund Policy | Fleet X Parts', description: DESCRIPTION, siteName: 'Fleet X Parts', type: 'website' },
-};
+  path: '/cancellation-refund-policy',
+});
 
 const SECTIONS: PolicySection[] = [
   {

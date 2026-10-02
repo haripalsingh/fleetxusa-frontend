@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import { notFound } from 'next/navigation';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
 import AssemblyView from '@/components/diagrams/AssemblyView';
@@ -12,15 +13,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const a = await getDiagram(slug).catch(() => null);
   if (!a) return {};
-  const title = `${a.name} — ${a.group.label} Parts Diagram | Fleet X Parts`;
+  const title = `${a.name} — ${a.group.label} Detroit Engine Parts | Fleet X Parts`;
   const description = `Exploded-view diagram of the ${a.name.toLowerCase()} with ${a.parts.length} parts. Click a number to find and order the right part.`;
-  return {
-    title,
-    description,
-    robots: { index: true, follow: true },
-    alternates: { canonical: `/parts-diagrams/${a.slug}` },
-    openGraph: { title, description, siteName: 'Fleet X Parts', type: 'website', images: a.diagram_url ? [a.diagram_url] : undefined },
-  };
+  return pageMetadata({ title, description, path: `/detroit-engine-parts/${a.slug}`, image: a.diagram_url });
 }
 
 export default async function DiagramPage({ params }: Props) {
@@ -40,7 +35,7 @@ export default async function DiagramPage({ params }: Props) {
       activeSlug={assembly.slug}
       crumbs={[
         { label: 'Home', href: '/' },
-        { label: 'Parts Diagrams', href: '/parts-diagrams' },
+        { label: 'Detroit Engine Parts', href: '/detroit-engine-parts' },
         { label: assembly.group.label },
         { label: assembly.name },
       ]}

@@ -1,21 +1,16 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import ContactForm from '@/components/ContactForm';
 
 const DESCRIPTION =
   'Get in touch with Fleet X Parts for help with parts, fitment, pricing, or an existing order.';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Contact Us | Fleet X Parts',
   description: DESCRIPTION,
   keywords: 'contact fleetx parts, truck parts support, customer service',
-  robots: { index: true, follow: true },
-  openGraph: {
-    title: 'Contact Us | Fleet X Parts',
-    description: DESCRIPTION,
-    siteName: 'Fleet X Parts',
-    type: 'website'
-  }
-};
+  path: '/contact',
+});
 
 const ICON_PROPS = {
   className: 'w-5 h-5 text-[#00a550]',

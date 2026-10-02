@@ -1,17 +1,17 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import PolicyPage from '@/components/PolicyPage';
 import type { PolicySection } from '@/components/PolicyPage';
 
 const DESCRIPTION =
   `Learn about Fleet X Parts shipping times, carriers, costs, and our return and refund process.`;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Shipping & Return Policy | Fleet X Parts',
   description: DESCRIPTION,
   keywords: 'shipping policy, return policy, truck parts returns',
-  robots: { index: true, follow: true },
-  openGraph: { title: 'Shipping & Return Policy | Fleet X Parts', description: DESCRIPTION, siteName: 'Fleet X Parts', type: 'website' },
-};
+  path: '/shipping-return-policy',
+});
 
 const SECTIONS: PolicySection[] = [
   {

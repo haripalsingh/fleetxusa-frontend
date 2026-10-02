@@ -1,14 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import Link from 'next/link';
 import { getCategories } from '@/lib/catalog';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Shop by Category | Fleet X Parts',
   description: 'Browse heavy-duty truck parts by category: clamps, filters, hoses and seals.',
-  robots: { index: true, follow: true },
-};
+  path: '/categories',
+});
 
 export default async function CategoriesPage() {
   const categories = await getCategories();

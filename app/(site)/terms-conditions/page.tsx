@@ -1,17 +1,17 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import PolicyPage from '@/components/PolicyPage';
 import type { PolicySection } from '@/components/PolicyPage';
 
 const DESCRIPTION =
   `Review the terms and conditions governing your use of the Fleet X Parts website and services.`;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Terms of Service & Terms and Conditions | Fleet X Parts',
   description: DESCRIPTION,
   keywords: 'terms of service, terms and conditions, Fleet X Parts',
-  robots: { index: true, follow: true },
-  openGraph: { title: 'Terms of Service & Terms and Conditions | Fleet X Parts', description: DESCRIPTION, siteName: 'Fleet X Parts', type: 'website' },
-};
+  path: '/terms-conditions',
+});
 
 const p = (text: string) => ({ type: 'p' as const, text });
 

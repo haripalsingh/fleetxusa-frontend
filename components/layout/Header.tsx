@@ -29,8 +29,9 @@ const NAV_MENUS: Record<string, NavMenu> = {
       { label: 'Filters', to: '/products/filters' },
       { label: 'Hoses', to: '/products/hoses' },
       { label: 'Seals', to: '/products/seals' },
-      { label: 'All Categories', to: '/categories' },
-      { label: 'Shop by Diagram', to: '/parts-diagrams' }
+      { label: 'Detroit Engine Parts', to: '/detroit-engine-parts' },
+            { label: 'All Categories', to: '/categories' },
+
     ]
   },
   about: {

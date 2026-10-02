@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import { redirect } from 'next/navigation';
 import ProductListing from '@/components/ProductListing';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
@@ -15,18 +16,12 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   if (q) {
     return { title: `Search: ${q} | Fleet X Parts`, robots: { index: false, follow: true } };
   }
-  return {
+  return pageMetadata({
     title: 'Shop Truck Parts | Fleet X Parts',
     description: DESCRIPTION,
     keywords: 'truck parts catalog, brake pads, rotors, calipers, hardware kits, truck parts for sale',
-    robots: { index: true, follow: true },
-    openGraph: {
-      title: 'Shop Truck Parts | Fleet X Parts',
-      description: DESCRIPTION,
-      siteName: 'Fleet X Parts',
-      type: 'website',
-    },
-  };
+    path: '/products',
+  });
 }
 
 export default async function ProductsPage({ searchParams }: Props) {

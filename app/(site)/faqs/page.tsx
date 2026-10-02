@@ -1,17 +1,17 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import PolicyPage from '@/components/PolicyPage';
 import type { PolicySection } from '@/components/PolicyPage';
 
 const DESCRIPTION =
   `Answers to common questions about shipping, returns, warranty, and heavy-duty truck parts at FleetX.`;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Frequently Asked Questions | Fleet X Parts',
   description: DESCRIPTION,
   keywords: 'FAQ, frequently asked questions, truck parts, shipping, returns, warranty',
-  robots: { index: true, follow: true },
-  openGraph: { title: 'Frequently Asked Questions | Fleet X Parts', description: DESCRIPTION, siteName: 'Fleet X Parts', type: 'website' },
-};
+  path: '/faqs',
+});
 
 const FAQS: { category: string; items: { question: string; answer: string }[] }[] = [
   {

@@ -22,7 +22,7 @@ export default function DiagramLayout({
       <div className="w-full bg-gray-200 border-b border-gray-300">
         <div className="max-w-[1500px] mx-auto px-4 flex flex-wrap items-stretch gap-x-6">
           <span className="hidden sm:flex items-center py-4 pr-6 border-r border-gray-400 font-heading text-sm font-bold text-gray-900">
-            Shop by Diagram
+            Detroit Engine Parts
           </span>
           <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 py-4 text-sm">
             {crumbs.map((c, i) => (

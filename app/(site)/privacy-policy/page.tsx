@@ -1,17 +1,17 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import PolicyPage from '@/components/PolicyPage';
 import type { PolicySection } from '@/components/PolicyPage';
 
 const DESCRIPTION =
   `Read the Fleet X Parts privacy policy to learn how we collect, use, and protect your information.`;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'Privacy Policy | Fleet X Parts',
   description: DESCRIPTION,
   keywords: 'privacy policy, data protection, Fleet X Parts',
-  robots: { index: true, follow: true },
-  openGraph: { title: 'Privacy Policy | Fleet X Parts', description: DESCRIPTION, siteName: 'Fleet X Parts', type: 'website' },
-};
+  path: '/privacy-policy',
+});
 
 const SECTIONS: PolicySection[] = [
   {

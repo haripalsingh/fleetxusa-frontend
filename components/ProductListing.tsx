@@ -397,12 +397,12 @@ export default function ProductListing({
                         </span>
                       )}
                     </div>
-                    <div className="flex flex-1 flex-col items-center gap-1.5 border-t border-gray-100 px-4 pt-4 pb-5 text-center">
-                      <h2 className="line-clamp-2 min-h-[2.75rem] text-[17px] font-bold uppercase leading-snug text-[#878787] transition-colors group-hover:text-[#00a550]">
+                    <div className="flex flex-1 flex-col items-center border-t border-gray-100 px-5 pt-5 pb-6 text-center">
+                      <h2 className="line-clamp-2 text-[17px] font-bold uppercase leading-snug text-[#878787] transition-colors group-hover:text-[#00a550]">
                         {p.name}
                       </h2>
-                      {p.brand && <p className="text-[15px] text-gray-400">{p.brand}</p>}
-                      <p className="mt-auto pt-2 text-[18px] font-bold text-gray-900">{priceLabel(p)}</p>
+                      {p.brand && <p className="mt-2 text-[15px] leading-none text-gray-400">{p.brand}</p>}
+                      <p className="mt-auto pt-4 text-[18px] font-bold leading-none text-gray-900">{priceLabel(p)}</p>
                     </div>
                   </Link>
                 ))}

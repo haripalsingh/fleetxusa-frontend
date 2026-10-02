@@ -1,20 +1,13 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/lib/site';
 import Image from 'next/image';
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: 'About Us | Fleet X Parts',
-  description:
-    'Learn about Fleet X Parts, a trusted supplier of heavy-duty truck brake parts built for fleet reliability.',
+  description: 'Learn about Fleet X Parts, a trusted supplier of heavy-duty truck brake parts built for fleet reliability.',
   keywords: 'about fleet x parts, truck parts company, fleet parts supplier',
-  robots: { index: true, follow: true },
-  openGraph: {
-    title: 'About Us | Fleet X Parts',
-    description:
-      'Learn about Fleet X Parts, a trusted supplier of heavy-duty truck brake parts built for fleet reliability.',
-    siteName: 'Fleet X Parts',
-    type: 'website'
-  }
-};
+  path: '/about',
+});
 
 const VALUES = [
   {

@@ -138,7 +138,7 @@ export default function DiagramGroupsNav({
                       return (
                         <li key={a.id}>
                           <Link
-                            href={`/parts-diagrams/${a.slug}`}
+                            href={`/detroit-engine-parts/${a.slug}`}
                             aria-current={active ? 'page' : undefined}
                             onClick={() => setMobileOpen(false)}
                             className={`block border-l-4 py-2 pl-10 pr-4 text-[13px] font-bold uppercase leading-snug transition-colors ${

@@ -70,7 +70,7 @@ function PartCard({
       }`}
     >
       <div className="flex gap-4">
-        <div className="flex flex-col items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 shrink-0">
           <span
             className={`inline-flex h-8 min-w-8 items-center justify-center rounded-full border-2 px-2 text-xs font-bold ${
               active ? 'border-red-600 bg-red-600 text-white' : 'border-red-600 bg-white text-red-600'
@@ -92,17 +92,17 @@ function PartCard({
           <p className="mt-0.5 text-sm font-semibold uppercase text-gray-900">{part.product.name}</p>
           {part.product.short_description && <p className="mt-1 text-xs text-gray-500 line-clamp-2">{part.product.short_description}</p>}
 
-          <p className="mt-2 text-lg font-bold text-gray-900">
+          {/* <p className="mt-2 text-lg font-bold text-gray-900">
             {variant?.compare_at_price && variant.compare_at_price > variant.price && (
               <s className="mr-2 text-sm font-normal text-gray-400">{formatMoney(variant.compare_at_price)}</s>
             )}
             {variant ? priceOrCall(variant.price) : '—'}
             {!callForPrice && <span className="text-xs font-normal text-gray-500"> (each)</span>}
-          </p>
-          <p className={`text-xs font-semibold ${canBuy ? (stock <= (variant?.low_stock_threshold ?? 5) ? 'text-amber-600' : 'text-green-700') : 'text-red-600'}`}>
+          </p> */}
+          {/* <p className={`text-xs font-semibold ${canBuy ? (stock <= (variant?.low_stock_threshold ?? 5) ? 'text-amber-600' : 'text-green-700') : 'text-red-600'}`}>
             {callForPrice ? 'Contact us for a quote' : canBuy ? `${stock} available` : 'Out of stock'}
-          </p>
-          <p className="mt-1 text-xs text-gray-600">Quantity used in assembly: {part.quantity}</p>
+          </p> */}
+          {/* <p className="mt-1 text-xs text-gray-600">Quantity used in assembly: {part.quantity}</p> */}
 
           {part.variants.length > 1 && (
             <label className="mt-3 block max-w-xs">
@@ -226,12 +226,12 @@ export default function AssemblyView({ assembly }: { assembly: DiagramAssembly }
         </div>
         <div className="flex gap-2 text-sm">
           {assembly.previous && (
-            <Link href={`/parts-diagrams/${assembly.previous.slug}`} className="border border-gray-300 bg-white px-3 py-2 hover:border-[#00a550]" title={assembly.previous.name}>
+            <Link href={`/detroit-engine-parts/${assembly.previous.slug}`} className="border border-gray-300 bg-white px-3 py-2 hover:border-[#00a550]" title={assembly.previous.name}>
               ← Previous
             </Link>
           )}
           {assembly.next && (
-            <Link href={`/parts-diagrams/${assembly.next.slug}`} className="border border-gray-300 bg-white px-3 py-2 hover:border-[#00a550]" title={assembly.next.name}>
+            <Link href={`/detroit-engine-parts/${assembly.next.slug}`} className="border border-gray-300 bg-white px-3 py-2 hover:border-[#00a550]" title={assembly.next.name}>
               Next →
             </Link>
           )}
@@ -240,7 +240,7 @@ export default function AssemblyView({ assembly }: { assembly: DiagramAssembly }
 
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] gap-6 items-start">
         {/* ---------------- diagram ---------------- */}
-        <section className="xl:sticky xl:top-24 bg-white shadow-sm" aria-label="Parts diagram">
+        <section className="self-start xl:sticky xl:top-28 bg-white shadow-sm" aria-label="Parts diagram">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-200 px-4 py-3">
             <button
               type="button"
@@ -309,7 +309,8 @@ export default function AssemblyView({ assembly }: { assembly: DiagramAssembly }
         </section>
 
         {/* ---------------- parts ---------------- */}
-        <section aria-label="Parts in this diagram">
+        {/* parts list grows with its content (no inner scroll); the diagram keeps its own height */}
+        <section aria-label="Parts in this diagram" className="self-start">
           <div className="mb-3 flex items-center justify-between bg-black px-4 py-3 text-white">
             <h2 className="text-sm font-bold uppercase tracking-wide">Parts ({parts.length})</h2>
             {activeId !== null && (
