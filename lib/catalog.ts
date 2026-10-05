@@ -6,6 +6,14 @@ import type { Category, DiagramAssembly, DiagramGroup, Product, ProductListResul
 
 const REVALIDATE = 60;
 
+/**
+ * Categories that live only in their own section (not in the normal shop).
+ * "engine-parts" = the Detroit DD15 diagram parts, shown only at /detroit-engine-parts.
+ */
+export const HIDDEN_CATEGORY_SLUGS = ['engine-parts'];
+export const DETROIT_SECTION_PATH = '/detroit-engine-parts';
+export const isHiddenCategory = (slug?: string | null) => !!slug && HIDDEN_CATEGORY_SLUGS.includes(slug);
+
 export type ProductQuery = {
   category?: string;
   categories?: string[];
@@ -25,7 +33,7 @@ export type ProductQuery = {
 export async function getCategories(): Promise<Category[]> {
   try {
     const res = await api<Category[]>('/categories', { next: { revalidate: REVALIDATE, tags: ['categories'] } });
-    return res.data;
+    return res.data.filter((c) => !isHiddenCategory(c.slug));
   } catch {
     return [];
   }
@@ -44,14 +52,21 @@ export async function getCategory(slug: string): Promise<Category | null> {
 }
 
 export async function getProducts(query: ProductQuery = {}): Promise<ProductListResult> {
+  // Normal shop (no category chosen): limit to the visible categories so
+  // Detroit engine parts don't show up in "All Products" / search.
+  if (!query.category && !query.categories?.length) {
+    const visible = (await getCategories()).map((c) => c.slug);
+    if (visible.length) query = { ...query, categories: visible };
+  }
   const res = await api<ProductListResult['data']>('/products', {
     query: query as Record<string, string | number | boolean | string[] | null | undefined>,
     next: { revalidate: REVALIDATE, tags: ['products'] },
   });
+  const facets = res.facets!;
   return {
     data: res.data,
     meta: res.meta as ProductListResult['meta'],
-    facets: res.facets!,
+    facets: { ...facets, categories: (facets?.categories ?? []).filter((c) => !isHiddenCategory(c.slug)) },
   };
 }
 

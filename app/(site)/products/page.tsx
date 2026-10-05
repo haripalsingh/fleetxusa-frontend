@@ -3,7 +3,7 @@ import { pageMetadata } from '@/lib/site';
 import { redirect } from 'next/navigation';
 import ProductListing from '@/components/ProductListing';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
-import { getCategories, getProducts, matchKey } from '@/lib/catalog';
+import { DETROIT_SECTION_PATH, getCategories, getProducts, matchKey } from '@/lib/catalog';
 import type { ProductListResult } from '@/lib/types';
 
 const DESCRIPTION =
@@ -26,10 +26,12 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function ProductsPage({ searchParams }: Props) {
   const { q = '', category } = await searchParams;
+  const categories = await getCategories();
 
   // Old links used /products?category=<name>. Send them to /products/<slug>.
   if (category) {
-    const match = (await getCategories()).find(
+    if (matchKey(category) === matchKey('engine-parts')) redirect(DETROIT_SECTION_PATH);
+    const match = categories.find(
       (c) => matchKey(c.name) === matchKey(category) || matchKey(c.slug) === matchKey(category)
     );
     if (match) redirect(`/products/${match.slug}`);
@@ -42,5 +44,5 @@ export default async function ProductsPage({ searchParams }: Props) {
     return <CatalogUnavailable error={err} />;
   }
 
-  return <ProductListing key={q} initial={initial} query={q.trim()} />;
+  return <ProductListing key={q} initial={initial} query={q.trim()} scope={categories.map((c) => c.slug)} />;
 }

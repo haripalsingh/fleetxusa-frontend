@@ -1,9 +1,9 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/site';
 import ProductListing from '@/components/ProductListing';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
-import { getCategory, getProducts } from '@/lib/catalog';
+import { DETROIT_SECTION_PATH, getCategory, getProducts, isHiddenCategory } from '@/lib/catalog';
 import type { Category, ProductListResult } from '@/lib/types';
 
 type Props = { params: Promise<{ category: string }> };
@@ -19,6 +19,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { category } = await params;
+  // Detroit engine parts have their own section, not a normal category page.
+  if (isHiddenCategory(category)) redirect(DETROIT_SECTION_PATH);
 
   let cat: Category | null;
   try {

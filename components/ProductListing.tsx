@@ -83,6 +83,7 @@ export default function ProductListing({
   category,
   initial,
   query = '',
+  scope = [],
 }: {
   /** Omit to show every product (the /products page). */
   category?: Category | null;
@@ -90,6 +91,8 @@ export default function ProductListing({
   initial: ProductListResult;
   /** Search term from ?q= */
   query?: string;
+  /** Category slugs the "All Products" list is limited to (hides Detroit engine parts). */
+  scope?: string[];
 }) {
   const [result, setResult] = useState<ProductListResult>(initial);
   const [loading, setLoading] = useState(false);
@@ -132,7 +135,7 @@ export default function ProductListing({
           signal: controller.signal,
           query: {
             category: category?.slug,
-            categories: [...cats],
+            categories: cats.size ? [...cats] : category ? [] : scope,
             q: query,
             type: [...types],
             color: [...colors],
@@ -157,7 +160,8 @@ export default function ProductListing({
       clearTimeout(timer);
       controller.abort();
     };
-  }, [category?.slug, cats, types, colors, brands, low, high, priceActive, sort, page, perPage, query]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category?.slug, cats, types, colors, brands, low, high, priceActive, sort, page, perPage, query, scope.join(',')]);
 
   const toggle = (setter: typeof setTypes) => (value: string) => {
     setter((prev) => {
