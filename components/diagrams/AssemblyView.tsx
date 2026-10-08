@@ -136,7 +136,7 @@ function PartCard({
               value={qty}
               aria-label={`Quantity of ${part.product.name}`}
               onChange={(e) => setQty(Math.max(1, Math.min(99, Number(e.target.value) || 1)))}
-              className="h-9 w-16 border border-gray-300 text-center text-sm focus:outline-none focus:border-[#00a550]"
+              className="h-9 w-16 border border-gray-300 text-center text-black text-sm focus:outline-none focus:border-[#00a550]"
             />
             <button
               type="button"
