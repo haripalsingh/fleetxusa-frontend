@@ -1,21 +1,15 @@
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/site';
-import { redirect } from 'next/navigation';
-import ProductListing from '@/components/ProductListing';
+import { Suspense } from 'react';
+import ProductsPageClient from '@/components/ProductsPageClient';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
-import { DETROIT_SECTION_PATH, getCategories, getProducts, matchKey } from '@/lib/catalog';
+import { DETROIT_SECTION_PATH, getCategories, getProducts } from '@/lib/catalog';
 import type { ProductListResult } from '@/lib/types';
 
 const DESCRIPTION =
   'Browse our full catalog of heavy-duty truck parts including brake pads, rotors, calipers, hardware kits, and more.';
 
-type Props = { searchParams: Promise<{ q?: string; category?: string }> };
-
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { q } = await searchParams;
-  if (q) {
-    return { title: `Search: ${q} | Fleet X Parts`, robots: { index: false, follow: true } };
-  }
+export async function generateMetadata(): Promise<Metadata> {
   return pageMetadata({
     title: 'Shop Truck Parts | Fleet X Parts',
     description: DESCRIPTION,
@@ -24,25 +18,20 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   });
 }
 
-export default async function ProductsPage({ searchParams }: Props) {
-  const { q = '', category } = await searchParams;
+export default async function ProductsPage() {
   const categories = await getCategories();
-
-  // Old links used /products?category=<name>. Send them to /products/<slug>.
-  if (category) {
-    if (matchKey(category) === matchKey('engine-parts')) redirect(DETROIT_SECTION_PATH);
-    const match = categories.find(
-      (c) => matchKey(c.name) === matchKey(category) || matchKey(c.slug) === matchKey(category)
-    );
-    if (match) redirect(`/products/${match.slug}`);
-  }
 
   let initial: ProductListResult;
   try {
-    initial = await getProducts({ q: q.trim(), per_page: 24 });
+    initial = await getProducts({ per_page: 24 });
   } catch (err) {
     return <CatalogUnavailable error={err} />;
   }
 
-  return <ProductListing key={q} initial={initial} query={q.trim()} scope={categories.map((c) => c.slug)} />;
+  // ?q= search and old ?category= links are read in the browser (static export)
+  return (
+    <Suspense fallback={<div className="min-h-[60vh]" />}>
+      <ProductsPageClient initial={initial} categories={categories} detroitPath={DETROIT_SECTION_PATH} />
+    </Suspense>
+  );
 }

@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { api, ApiError, formatDate, formatMoney, productUrl } from '@/lib/api';
@@ -30,8 +30,17 @@ const AddressBlock = ({ title, a }: { title: string; a: Address }) => (
   </div>
 );
 
+// Static export: /orders/<number> is served from one prebuilt page, so the order
+// number comes from the address bar ('' during the build / first hydration pass).
+const noSubscribe = () => () => {};
+const readOrderNumber = () => {
+  const m = window.location.pathname.match(/\/orders\/([^/?#]+)/);
+  return m ? decodeURIComponent(m[1]) : '';
+};
+
 /** Order details for the owner (logged in) or a guest holding the ?key= link. */
-export default function OrderDetails({ number }: { number: string }) {
+export default function OrderDetails() {
+  const number = useSyncExternalStore(noSubscribe, readOrderNumber, () => '');
   const params = useSearchParams();
   const key = params.get('key') ?? undefined;
   const justPlaced = params.get('placed') === '1';
@@ -45,7 +54,9 @@ export default function OrderDetails({ number }: { number: string }) {
 
   const load = useCallback(
     () =>
-      api<Order>(`/orders/${encodeURIComponent(number)}`, { query: { key } })
+      !number
+        ? Promise.resolve()
+        : api<Order>(`/orders/${encodeURIComponent(number)}`, { query: { key } })
         .then((res) => {
           setOrder(res.data);
           setError(null);

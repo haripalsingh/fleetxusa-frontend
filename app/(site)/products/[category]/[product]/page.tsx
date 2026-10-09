@@ -3,11 +3,17 @@ import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/site';
 import ProductDetail from '@/components/ProductDetail';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
-import { getProduct } from '@/lib/catalog';
+import { getAllProductParamsForBuild, getProduct } from '@/lib/catalog';
 import { productUrl } from '@/lib/api';
 import type { Product } from '@/lib/types';
 
 type Props = { params: Promise<{ category: string; product: string }> };
+
+// Static export: one page per product at its canonical URL, built from the API.
+// (new products added after a build only exist after the next build + upload)
+export async function generateStaticParams() {
+  return getAllProductParamsForBuild();
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { product } = await params;

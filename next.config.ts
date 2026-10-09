@@ -1,13 +1,19 @@
-import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  // old "Shop by Diagram" URLs → new Detroit engine parts URLs
-  async redirects() {
-    return [
-      { source: '/parts-diagrams', destination: '/detroit-engine-parts', permanent: true },
-      { source: '/parts-diagrams/:slug', destination: '/detroit-engine-parts/:slug', permanent: true },
-    ];
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // static export only for `next build` (GoDaddy upload); `next dev` runs normally so
+  // /orders/<number> and new products work locally without .htaccess
+  output: process.env.NODE_ENV === 'production' ? 'export' : undefined,
+  trailingSlash: false,
+  typescript: {
+    ignoreBuildErrors: true,  
+  },
+  images: {
+    unoptimized: true,
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
+
+

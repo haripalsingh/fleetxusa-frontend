@@ -5,7 +5,6 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
 import { formatMoney, refreshCart, useCart } from '@/lib/cart';
 import { useAuth } from '@/context/AuthContext';
@@ -150,7 +149,6 @@ const pickErrors = (errors: Record<string, string>, prefix: string): Errors =>
   ) as Errors;
 
 export default function CheckoutForm() {
-  const router = useRouter();
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { items, ready, count, issues, totals: cartTotals } = useCart();
 
@@ -283,7 +281,8 @@ export default function CheckoutForm() {
         window.location.href = payment.redirect_url; // hosted payment page (Stripe)
         return;
       }
-      router.push(`/orders/${order.order_number}?key=${order.access_key}&placed=1`);
+      // full page load: /orders/<number> is served by .htaccess (static export)
+      window.location.assign(`/orders/${order.order_number}?key=${order.access_key}&placed=1`);
     } catch (err) {
       setPlacing(false);
       if (!(err instanceof ApiError)) {

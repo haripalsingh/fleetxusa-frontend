@@ -101,9 +101,10 @@ export function OrderList({ orders }: { orders: Order[] | null }) {
                 <OrderStatusBadge status={o.status} />
               </td>
               <td className="py-3 text-right">
-                <Link href={`/orders/${o.order_number}`} className="text-[#00a550] font-medium hover:underline whitespace-nowrap">
+                {/* plain <a>: /orders/<number> is served by .htaccess (static export) */}
+                <a href={`/orders/${o.order_number}`} className="text-[#00a550] font-medium hover:underline whitespace-nowrap">
                   View
-                </Link>
+                </a>
               </td>
             </tr>
           ))}

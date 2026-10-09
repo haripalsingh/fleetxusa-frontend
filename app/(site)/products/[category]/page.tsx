@@ -3,10 +3,15 @@ import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/site';
 import ProductListing from '@/components/ProductListing';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
-import { DETROIT_SECTION_PATH, getCategory, getProducts, isHiddenCategory } from '@/lib/catalog';
+import { getAllCategorySlugs, getCategory, getProducts, hiddenCategoryPath, isHiddenCategory } from '@/lib/catalog';
 import type { Category, ProductListResult } from '@/lib/types';
 
 type Props = { params: Promise<{ category: string }> };
+
+// Static export: one page per category, built from the API.
+export async function generateStaticParams() {
+  return (await getAllCategorySlugs()).map((category) => ({ category }));
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params;
@@ -19,8 +24,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function CategoryPage({ params }: Props) {
   const { category } = await params;
-  // Detroit engine parts have their own section, not a normal category page.
-  if (isHiddenCategory(category)) redirect(DETROIT_SECTION_PATH);
+  // Detroit / Cummins engine parts have their own section, not a normal category page.
+  if (isHiddenCategory(category)) redirect(hiddenCategoryPath(category));
 
   let cat: Category | null;
   try {

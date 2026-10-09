@@ -84,6 +84,7 @@ export default function ProductListing({
   initial,
   query = '',
   scope = [],
+  fetchOnMount = false,
 }: {
   /** Omit to show every product (the /products page). */
   category?: Category | null;
@@ -93,6 +94,8 @@ export default function ProductListing({
   query?: string;
   /** Category slugs the "All Products" list is limited to (hides Detroit engine parts). */
   scope?: string[];
+  /** Load results in the browser right away (search: `initial` is the unfiltered list). */
+  fetchOnMount?: boolean;
 }) {
   const [result, setResult] = useState<ProductListResult>(initial);
   const [loading, setLoading] = useState(false);
@@ -115,7 +118,7 @@ export default function ProductListing({
   const [page, setPage] = useState(1);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const gridTop = useRef<HTMLDivElement>(null);
-  const firstRender = useRef(true);
+  const firstRender = useRef(!fetchOnMount);
 
   const priceActive = low > bounds.min || high < bounds.max;
   const filtersActive = cats.size > 0 || types.size > 0 || colors.size > 0 || brands.size > 0 || priceActive;

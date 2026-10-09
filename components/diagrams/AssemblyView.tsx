@@ -172,7 +172,14 @@ function PartCard({
   );
 }
 
-export default function AssemblyView({ assembly }: { assembly: DiagramAssembly }) {
+export default function AssemblyView({
+  assembly,
+  basePath = '/detroit-engine-parts',
+}: {
+  assembly: DiagramAssembly;
+  /** engine section the previous / next links stay in */
+  basePath?: string;
+}) {
   const [activeId, setActiveId] = useState<number | null>(null);
   const [hoverId, setHoverId] = useState<number | null>(null);
   const [showHotspots, setShowHotspots] = useState(true);
@@ -226,12 +233,12 @@ export default function AssemblyView({ assembly }: { assembly: DiagramAssembly }
         </div>
         <div className="flex gap-2 text-sm">
           {assembly.previous && (
-            <Link href={`/detroit-engine-parts/${assembly.previous.slug}`} className="border border-gray-300 bg-white px-3 py-2 hover:border-[#00a550]" title={assembly.previous.name}>
+            <Link href={`${basePath}/${assembly.previous.slug}`} className="border border-gray-300 bg-white px-3 py-2 hover:border-[#00a550]" title={assembly.previous.name}>
               ← Previous
             </Link>
           )}
           {assembly.next && (
-            <Link href={`/detroit-engine-parts/${assembly.next.slug}`} className="border border-gray-300 bg-white px-3 py-2 hover:border-[#00a550]" title={assembly.next.name}>
+            <Link href={`${basePath}/${assembly.next.slug}`} className="border border-gray-300 bg-white px-3 py-2 hover:border-[#00a550]" title={assembly.next.name}>
               Next →
             </Link>
           )}

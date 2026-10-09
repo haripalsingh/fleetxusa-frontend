@@ -2,10 +2,11 @@ import type { MetadataRoute } from 'next';
 import { productUrl } from '@/lib/api';
 import { getCategories, getDiagramGroups, getProducts } from '@/lib/catalog';
 import { SITE_URL } from '@/lib/site';
+import { ENGINE_SECTIONS, sectionKeyOfGroup } from '@/lib/engineSections';
 import type { ProductSummary } from '@/lib/types';
 
-// Served at /sitemap.xml. Rebuilt hourly so new products/categories show up without a redeploy.
-export const revalidate = 3600;
+// Served at /sitemap.xml. Static export: generated at build time (rebuild to add new products).
+export const dynamic = 'force-static';
 
 type Entry = MetadataRoute.Sitemap[number];
 
@@ -14,6 +15,7 @@ const STATIC_PAGES: { path: string; changeFrequency: Entry['changeFrequency']; p
   { path: '/products', changeFrequency: 'daily', priority: 0.9 },
   { path: '/categories', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/detroit-engine-parts', changeFrequency: 'weekly', priority: 0.8 },
+  { path: '/cummins-engine-parts', changeFrequency: 'weekly', priority: 0.8 },
   { path: '/about', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/contact', changeFrequency: 'monthly', priority: 0.5 },
   { path: '/faqs', changeFrequency: 'monthly', priority: 0.5 },
@@ -65,10 +67,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       ...(p.image_url?.startsWith('http') ? { images: [p.image_url] } : {}),
     })),
     ...groups
-      .flatMap((g) => g.assemblies)
-      .filter((a) => a.is_active)
-      .map((a): Entry => ({
-        url: `${SITE_URL}/detroit-engine-parts/${a.slug}`,
+      .flatMap((g) => g.assemblies.map((a) => ({ a, path: ENGINE_SECTIONS[sectionKeyOfGroup(g)].path })))
+      .filter(({ a }) => a.is_active)
+      .map(({ a, path }): Entry => ({
+        url: `${SITE_URL}${path}/${a.slug}`,
         lastModified,
         changeFrequency: 'monthly',
         priority: 0.6,

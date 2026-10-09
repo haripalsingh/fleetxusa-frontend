@@ -3,16 +3,20 @@
 
 import { api, ApiError } from './api';
 import type { Category, DiagramAssembly, DiagramGroup, Product, ProductListResult } from './types';
+import { ENGINE_SECTIONS, groupsForSection, type EngineSectionKey } from './engineSections';
 
 const REVALIDATE = 60;
 
 /**
- * Categories that live only in their own section (not in the normal shop).
- * "engine-parts" = the Detroit DD15 diagram parts, shown only at /detroit-engine-parts.
+ * Categories that live only in their own engine section (not in the normal shop):
+ * "engine-parts" -> /detroit-engine-parts, "cummins-engine-parts" -> /cummins-engine-parts.
  */
-export const HIDDEN_CATEGORY_SLUGS = ['engine-parts'];
-export const DETROIT_SECTION_PATH = '/detroit-engine-parts';
+export const HIDDEN_CATEGORY_SLUGS = Object.values(ENGINE_SECTIONS).map((s) => s.categorySlug);
+export const DETROIT_SECTION_PATH = ENGINE_SECTIONS.detroit.path;
 export const isHiddenCategory = (slug?: string | null) => !!slug && HIDDEN_CATEGORY_SLUGS.includes(slug);
+/** Where a hidden category's URL should go (its engine section). */
+export const hiddenCategoryPath = (slug: string) =>
+  Object.values(ENGINE_SECTIONS).find((s) => s.categorySlug === slug)?.path ?? DETROIT_SECTION_PATH;
 
 export type ProductQuery = {
   category?: string;
@@ -102,4 +106,59 @@ export async function getDiagram(slug: string): Promise<DiagramAssembly | null> 
     if (err instanceof ApiError && err.status === 404) return null;
     throw err;
   }
+}
+
+// ---- Static export (output: 'export') ----------------------------------------------
+// Every dynamic page is generated at build time from the live API, so the API must be
+// reachable when running `npm run build`. New products/categories need a rebuild + upload.
+
+function requireData<T>(what: string, list: T[]): T[] {
+  if (!list.length) {
+    throw new Error(
+      `[static export] No ${what} returned by the API (${process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL || 'default API URL'}). ` +
+        'Check the API is online, then run the build again.'
+    );
+  }
+  return list;
+}
+
+/** Every category slug, including hidden ones (those pages redirect to their own section). */
+export async function getAllCategorySlugs(): Promise<string[]> {
+  const res = await api<Category[]>('/categories');
+  return requireData('categories', res.data.map((c) => c.slug));
+}
+
+/**
+ * Every product page to build, as { category, product } URL params:
+ * the normal catalog (max 100 per API page) PLUS the Detroit engine parts, which
+ * the /products list leaves out and only appear inside the diagrams.
+ */
+export async function getAllProductParamsForBuild(): Promise<{ category: string; product: string }[]> {
+  const first = await api<Product[]>('/products', { query: { per_page: 100, page: 1 } });
+  const pages = Number((first.meta as { total_pages?: number } | undefined)?.total_pages ?? 1);
+  const rest = await Promise.all(
+    Array.from({ length: Math.max(0, pages - 1) }, (_, i) =>
+      api<Product[]>('/products', { query: { per_page: 100, page: i + 2 } })
+    )
+  );
+  const catalog = [first, ...rest].flatMap((r) => r.data);
+
+  const groups = await getDiagramGroups();
+  const assemblies = await Promise.all(
+    groups.flatMap((g) => g.assemblies).map((a) => getDiagram(a.slug).catch(() => null))
+  );
+  const diagramProducts = assemblies.flatMap((a) => a?.parts ?? []).flatMap((p) => (p.product ? [p.product] : []));
+
+  const params = new Map<string, { category: string; product: string }>();
+  for (const p of [...catalog, ...diagramProducts]) {
+    if (!p?.slug) continue;
+    params.set(p.slug, { category: p.category?.slug || 'parts', product: p.slug });
+  }
+  return requireData('products', [...params.values()]);
+}
+
+/** Every diagram assembly slug in one engine section (Detroit / Cummins). */
+export async function getAllDiagramSlugs(section: EngineSectionKey): Promise<string[]> {
+  const groups = groupsForSection(await getDiagramGroups(), section);
+  return requireData(`${ENGINE_SECTIONS[section].title} diagrams`, groups.flatMap((g) => g.assemblies.map((a) => a.slug)));
 }

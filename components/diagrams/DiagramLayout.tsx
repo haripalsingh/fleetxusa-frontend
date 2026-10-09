@@ -1,17 +1,26 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import type { DiagramGroup } from '@/lib/types';
+import type { EngineSectionKey } from '@/lib/engineSections';
 import DiagramGroupsNav from './DiagramGroupsNav';
 
 type Crumb = { label: string; href?: string };
 
 /** Page frame for "Shop by Diagram": breadcrumb bar + groups sidebar + content. */
 export default function DiagramLayout({
+  title,
+  basePath,
+  sectionKey,
   groups,
   activeSlug,
   crumbs,
   children,
 }: {
+  /** section name shown in the top bar ("Detroit Engine Parts") */
+  title: string;
+  /** "/detroit-engine-parts" — diagram links are built from it */
+  basePath: string;
+  sectionKey: EngineSectionKey;
   groups: DiagramGroup[];
   activeSlug?: string;
   crumbs: Crumb[];
@@ -22,7 +31,7 @@ export default function DiagramLayout({
       <div className="w-full bg-gray-200 border-b border-gray-300">
         <div className="max-w-[1500px] mx-auto px-4 flex flex-wrap items-stretch gap-x-6">
           <span className="hidden sm:flex items-center py-4 pr-6 border-r border-gray-400 font-heading text-sm font-bold text-gray-900">
-            Detroit Engine Parts
+            {title}
           </span>
           <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-x-2 py-4 text-sm">
             {crumbs.map((c, i) => (
@@ -43,7 +52,7 @@ export default function DiagramLayout({
 
       <div className="max-w-[1500px] mx-auto px-4 py-6 md:py-8 grid grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-6 lg:gap-8">
         <aside>
-          <DiagramGroupsNav groups={groups} activeSlug={activeSlug} />
+          <DiagramGroupsNav groups={groups} activeSlug={activeSlug} basePath={basePath} sectionKey={sectionKey} />
         </aside>
         <main className="min-w-0">{children}</main>
       </div>

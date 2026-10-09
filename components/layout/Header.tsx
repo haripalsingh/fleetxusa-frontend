@@ -1,4 +1,5 @@
 'use client';
+/* eslint-disable @next/next/no-img-element */
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
@@ -8,7 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import MobileDrawer from './MobileDrawer';
 import type { DrawerSection } from './MobileDrawer';
 
-type NavLink = { label: string; to: string };
+type NavLink = { label: string; to: string; desc?: string };
 type NavMenu = {
   type: 'simple' | 'mega';
   to?: string;
@@ -30,8 +31,8 @@ const NAV_MENUS: Record<string, NavMenu> = {
       { label: 'Hoses', to: '/products/hoses' },
       { label: 'Seals', to: '/products/seals' },
       { label: 'Detroit Engine Parts', to: '/detroit-engine-parts' },
-            { label: 'All Categories', to: '/categories' },
-
+      { label: 'Cummins Engine Parts', to: '/cummins-engine-parts' },
+      { label: 'All Categories', to: '/categories' }
     ]
   },
   about: {
@@ -69,6 +70,36 @@ const NAV_ORDER = [
   { key: 'contact', label: 'Contact Us' }
 ];
 
+// ---- Desktop mega-menu content (Products) ------------------------------
+const MEGA_CATEGORIES = [
+  { label: 'Clamps', to: '/products/clamps', img: '/images/menu/clamps.webp', desc: 'V-band, T-bolt & exhaust' },
+  { label: 'Filters', to: '/products/filters', img: '/images/menu/filters.webp', desc: 'Oil, fuel & air filtration' },
+  { label: 'Hoses', to: '/products/hoses', img: '/images/menu/hoses.webp', desc: 'Silicone coolant & charge-air' },
+  { label: 'Seals', to: '/products/seals', img: '/images/menu/seals.webp', desc: 'O-rings, gaskets & seals' }
+];
+const MEGA_ENGINES = [
+  { label: 'Detroit Engine Parts', to: '/detroit-engine-parts', mark: 'DD', desc: 'DD15 exploded-view diagrams' },
+  { label: 'Cummins Engine Parts', to: '/cummins-engine-parts', mark: 'CU', desc: 'Top Cummins parts by system' }
+];
+const RESOURCE_ICONS: Record<string, string> = {
+  '/resources/catalogs': 'M4 6h16M4 10h16M4 14h10M4 18h10',
+  '/resources/guides': 'M9 12h6m-6 4h6M7 4h7l5 5v11a1 1 0 01-1 1H7a1 1 0 01-1-1V5a1 1 0 011-1z',
+  '/resources/warranty': 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3zm-3 9l2 2 4-4',
+  '/faqs': 'M9 9a3 3 0 116 0c0 2-3 2-3 4m0 4h.01M12 21a9 9 0 110-18 9 9 0 010 18z'
+};
+const RESOURCE_DESCS: Record<string, string> = {
+  '/resources/catalogs': 'Download product catalogs',
+  '/resources/guides': 'Step-by-step install help',
+  '/resources/warranty': 'Coverage & claims',
+  '/faqs': 'Answers to common questions'
+};
+
+const Arrow = ({ className = 'w-4 h-4' }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+  </svg>
+);
+
 const DRAWER_SECTIONS: DrawerSection[] = NAV_ORDER.map(({ key, label }) => {
   const menu = NAV_MENUS[key];
   const links =
@@ -82,7 +113,7 @@ const DRAWER_SECTIONS: DrawerSection[] = NAV_ORDER.map(({ key, label }) => {
   };
 });
 
-const Header = ({ phone = '(000) 000-0000' }: HeaderProps) => {
+const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
   const pathname = usePathname();
   const router = useRouter();
   const navigate = (to: string) => router.push(to);
@@ -145,6 +176,14 @@ const Header = ({ phone = '(000) 000-0000' }: HeaderProps) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isProfileMenuOpen, openMenu]);
 
+  // Escape closes any open dropdown
+  useEffect(() => {
+    if (!openMenu) return undefined;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpenMenu(null);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [openMenu]);
+
   // Close mega-menu on route change
   useEffect(() => {
     setOpenMenu(null);
@@ -201,30 +240,42 @@ const Header = ({ phone = '(000) 000-0000' }: HeaderProps) => {
       })
     );
 
-  const renderSimpleDropdown = (menu: NavMenu) =>
-    React.createElement(
-      'div',
-      { className: 'absolute left-0 top-full mt-2 bg-white/75 backdrop-blur-md border border-gray-200 shadow-xl z-40 min-w-[220px] rounded-lg overflow-hidden' },
-      React.createElement(
-        'ul',
-        { className: 'py-3' },
-        ...(menu.links ?? []).map((link, i) =>
-          React.createElement(
-            'li',
-            { key: i },
-            React.createElement(
-              Link,
-              {
-                href: link.to,
-                className: 'block px-5 py-2 text-sm text-[#2B2A29] font-medium hover:text-[#00a550] hover:bg-gray-50 transition-colors',
-                onClick: () => setOpenMenu(null)
-              },
-              link.label
-            )
-          )
-        )
-      )
-    );
+  const renderSimpleDropdown = (menu: NavMenu) => (
+    <div className="absolute left-1/2 top-full -translate-x-1/2 pt-5 z-40">
+      <div className="fx-menu-in w-80 rounded-2xl bg-white p-2 shadow-2xl ring-1 ring-black/5 font-display">
+        <ul>
+          {(menu.links ?? []).map((link) => {
+            const active = pathname === link.to;
+            const icon = RESOURCE_ICONS[link.to];
+            const desc = link.desc ?? RESOURCE_DESCS[link.to];
+            return (
+              <li key={link.to}>
+                <Link
+                  href={link.to}
+                  onClick={() => setOpenMenu(null)}
+                  className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors ${
+                    active ? 'bg-[#eefaf3]' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-gray-700 transition-colors group-hover:bg-gradient-to-br group-hover:from-[#e9e611] group-hover:to-[#00a34f] group-hover:text-white">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d={icon ?? 'M9 5l7 7-7 7'} />
+                    </svg>
+                  </span>
+                  <span className="min-w-0">
+                    <span className={`block text-[15px] font-bold ${active ? 'text-[#00a550]' : 'text-gray-900 group-hover:text-[#00a550]'}`}>
+                      {link.label}
+                    </span>
+                    {desc && <span className="block text-xs text-gray-500">{desc}</span>}
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </div>
+  );
 
   const renderNavItem = ({ key, label }: { key: string; label: string }) => {
     const isOpen = openMenu === key;
@@ -253,7 +304,7 @@ const Header = ({ phone = '(000) 000-0000' }: HeaderProps) => {
       },
       React.createElement(
         'button',
-        { type: 'button', onClick: () => toggleMenu(key), className: `flex items-center ${labelClassName}` },
+        { type: 'button', 'aria-expanded': isOpen, onClick: () => setOpenMenu(key), className: `flex items-center ${labelClassName}` },
         label
       ),
       React.createElement(
@@ -266,78 +317,106 @@ const Header = ({ phone = '(000) 000-0000' }: HeaderProps) => {
         },
         renderChevron(isOpen)
       ),
-      isOpen && menu && menu.type === 'simple' && renderSimpleDropdown(menu)
+      isOpen && menu && menu.type === 'simple' && key !== 'products' && renderSimpleDropdown(menu)
     );
   };
 
+  // Products: full-width mega panel (categories with photos + engine sections + help card)
   const renderMegaPanel = () => {
     if (openMenu !== 'products') return null;
-    const menu = NAV_MENUS.products;
-    if (!menu || menu.type !== 'mega') return null;
+    const close = () => setOpenMenu(null);
+    const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
-    return React.createElement(
-      'div',
-      { className: 'absolute left-0 right-0 top-full bg-white/75 backdrop-blur-md border-t border-gray-200 shadow-xl z-40 rounded-lg' },
-      React.createElement(
-        'div',
-        { className: 'max-w-7xl mx-auto px-4 md:px-0   lg:px-10 py-8 rounded-lg' },
-        React.createElement(
-          'div',
-          { className: 'grid grid-cols-1 md:grid-cols-3 gap-8' },
-          ...(menu.columns ?? []).map((col, i) =>
-            React.createElement(
-              'div',
-              { key: i },
-              React.createElement('h3', { className: 'text-[#00a550] font-bold text-base mb-3' }, col.title),
-              React.createElement(
-                'ul',
-                { className: 'space-y-2' },
-                ...col.links.map((link, j) =>
-                  React.createElement(
-                    'li',
-                    { key: j },
-                    React.createElement(
-                      Link,
-                      {
-                        href: link.to,
-                        className: 'text-[#2B2A29] text-sm font-medium hover:text-[#00a550] transition-colors',
-                        onClick: () => setOpenMenu(null)
-                      },
-                      link.label
-                    )
-                  )
-                )
-              )
-            )
-          )
-        ),
-        menu.footerLinks && React.createElement(
-          'div',
-          { className: 'mt-8 pt-6 border-t border-gray-200 flex flex-wrap gap-8' },
-          ...menu.footerLinks.map((link, i) =>
-            React.createElement(
-              Link,
-              {
-                key: i,
-                href: link.to,
-                className: 'flex items-center gap-2 text-[#00a550] font-bold text-base hover:opacity-80 transition-opacity',
-                onClick: () => setOpenMenu(null)
-              },
-              link.label,
-              React.createElement(
-                'svg',
-                { className: 'w-4 h-4', fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' },
-                React.createElement('path', {
-                  strokeLinecap: 'round',
-                  strokeLinejoin: 'round',
-                  strokeWidth: 2,
-                  d: 'M17 8l4 4m0 0l-4 4m4-4H3'
-                })
-              )
-            )
-          )
-        )
-      )
+    return (
+      <div className="absolute left-0 right-0 top-full pt-3 z-40">
+        <div className="fx-menu-in overflow-hidden rounded-2xl bg-white shadow-2xl ring-1 ring-black/5 font-display">
+          <div className="h-1 w-full bg-gradient-to-r from-[#e9e611] to-[#00a34f]" />
+          <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)_280px]">
+            {/* Shop by category */}
+            <div className="p-7">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-gray-500">Shop by category</p>
+              <ul className="grid grid-cols-2 gap-3">
+                {MEGA_CATEGORIES.map((c) => (
+                  <li key={c.to}>
+                    <Link
+                      href={c.to}
+                      onClick={close}
+                      className={`group flex items-center gap-3 rounded-xl border p-2.5 transition-all hover:-translate-y-0.5 hover:border-[#00a550]/40 hover:shadow-md ${
+                        isActive(c.to) ? 'border-[#00a550] bg-[#eefaf3]' : 'border-gray-200'
+                      }`}
+                    >
+                      <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-white">
+                        <img src={c.img} alt="" width={56} height={56} loading="lazy" className="h-full w-full object-contain transition-transform group-hover:scale-110" />
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-[15px] font-bold text-gray-900 group-hover:text-[#00a550]">{c.label}</span>
+                        <span className="block truncate text-xs text-gray-500">{c.desc}</span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-5 flex items-center gap-6 text-sm font-bold">
+                <Link href="/categories" onClick={close} className="inline-flex items-center gap-1.5 text-[#00a550] hover:gap-2.5 transition-all">
+                  All Categories <Arrow />
+                </Link>
+                <Link href="/products" onClick={close} className="inline-flex items-center gap-1.5 text-gray-700 hover:text-[#00a550] hover:gap-2.5 transition-all">
+                  All Products <Arrow />
+                </Link>
+              </div>
+            </div>
+
+            {/* Engine parts by diagram */}
+            <div className="border-l border-gray-100 bg-gray-50/70 p-7">
+              <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-gray-500">Engine parts by diagram</p>
+              <ul className="space-y-3">
+                {MEGA_ENGINES.map((e) => (
+                  <li key={e.to}>
+                    <Link
+                      href={e.to}
+                      onClick={close}
+                      className={`group flex items-center gap-4 rounded-xl border bg-white p-3 transition-all hover:-translate-y-0.5 hover:border-[#00a550]/40 hover:shadow-md ${
+                        isActive(e.to) ? 'border-[#00a550]' : 'border-gray-200'
+                      }`}
+                    >
+                      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-black font-heading text-sm text-white transition-colors group-hover:bg-gradient-to-br group-hover:from-[#e9e611] group-hover:to-[#00a34f]">
+                        {e.mark}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[15px] font-bold text-gray-900 group-hover:text-[#00a550]">{e.label}</span>
+                        <span className="block text-xs text-gray-500">{e.desc}</span>
+                      </span>
+                      <Arrow className="h-4 w-4 shrink-0 text-gray-300 transition-all group-hover:translate-x-1 group-hover:text-[#00a550]" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 text-xs leading-relaxed text-gray-500">
+                Open a diagram, click the numbered callout and add the exact part to your cart.
+              </p>
+            </div>
+
+            {/* Help card */}
+            <div className="relative flex flex-col justify-end overflow-hidden bg-black p-6 text-white">
+              <img src="/images/menu/promo.webp" alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-60" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-transparent" />
+              <div className="relative">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#e9e611]">Can&rsquo;t find a part?</p>
+                <p className="mt-2 text-lg font-bold leading-snug">Send us the part number &mdash; we&rsquo;ll check stock &amp; price.</p>
+                <a
+                  href={`tel:${phone.replace(/[^0-9+]/g, '')}`}
+                  className="mt-4 flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#e9e611] to-[#00a34f] px-4 py-2.5 text-sm font-bold text-white hover:opacity-90 transition-opacity"
+                >
+                  Call {phone}
+                </a>
+                <Link href="/contact" onClick={close} className="mt-2 flex items-center justify-center gap-1.5 rounded-lg border border-white/40 px-4 py-2.5 text-sm font-bold hover:bg-white hover:text-black transition-colors">
+                  Request a part <Arrow />
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     );
   };
 

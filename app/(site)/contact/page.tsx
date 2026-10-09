@@ -146,7 +146,7 @@ const ContactPage = () => {
                       href="tel:0000000000"
                       className="text-[#00a550] hover:underline text-sm"
                     >
-                      000-000-0000
+                      917-293-3704
                     </a>
                   </div>
                 </div>

@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import type { DiagramGroup } from '@/lib/types';
+import { groupsForSection, type EngineSectionKey } from '@/lib/engineSections';
 
 const PlusMinus = ({ open }: { open: boolean }) => (
   <svg viewBox="0 0 20 20" className="h-4 w-4 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
@@ -18,8 +19,13 @@ const PlusMinus = ({ open }: { open: boolean }) => (
 export default function DiagramGroupsNav({
   groups,
   activeSlug,
+  basePath,
+  sectionKey,
 }: {
   groups: DiagramGroup[];
+  basePath: string;
+  /** search results are limited to this engine section */
+  sectionKey: EngineSectionKey;
   /** slug of the diagram being viewed (its group starts expanded) */
   activeSlug?: string;
 }) {
@@ -41,7 +47,7 @@ export default function DiagramGroupsNav({
     const t = setTimeout(() => {
       setSearching(true);
       api<DiagramGroup[]>('/diagrams', { query: { q }, signal: ctrl.signal })
-        .then((res) => setResults(res.data))
+        .then((res) => setResults(groupsForSection(res.data, sectionKey)))
         .catch(() => setResults([]))
         .finally(() => setSearching(false));
     }, 300);
@@ -49,7 +55,7 @@ export default function DiagramGroupsNav({
       clearTimeout(t);
       ctrl.abort();
     };
-  }, [query]);
+  }, [query, sectionKey]);
 
   const searchActive = query.trim().length >= 2 && results !== null;
   const list = searchActive ? results ?? [] : groups;
@@ -138,7 +144,7 @@ export default function DiagramGroupsNav({
                       return (
                         <li key={a.id}>
                           <Link
-                            href={`/detroit-engine-parts/${a.slug}`}
+                            href={`${basePath}/${a.slug}`}
                             aria-current={active ? 'page' : undefined}
                             onClick={() => setMobileOpen(false)}
                             className={`block border-l-4 py-2 pl-10 pr-4 text-[13px] font-bold uppercase leading-snug transition-colors ${

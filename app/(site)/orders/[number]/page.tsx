@@ -2,18 +2,22 @@ import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import OrderDetails from '@/components/OrderDetails';
 
-type Props = { params: Promise<{ number: string }> };
-
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { number } = await params;
-  return { title: `Order ${number} | Fleet X Parts`, robots: { index: false, follow: false } };
+// Static export: order numbers only exist at runtime, so a single shell page
+// (/orders/view.html) is built. .htaccess serves it for every /orders/<number> URL,
+// and OrderDetails reads the real order number from the browser address bar.
+export function generateStaticParams() {
+  return [{ number: 'view' }];
 }
 
-export default async function OrderPage({ params }: Props) {
-  const { number } = await params;
+export const metadata: Metadata = {
+  title: 'Order details | Fleet X Parts',
+  robots: { index: false, follow: false },
+};
+
+export default function OrderPage() {
   return (
     <Suspense fallback={<div className="min-h-[60vh] bg-gray-50" />}>
-      <OrderDetails number={number} />
+      <OrderDetails />
     </Suspense>
   );
 }
