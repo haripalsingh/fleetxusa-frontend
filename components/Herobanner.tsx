@@ -3,7 +3,7 @@ import Link from 'next/link';
 // Hero banner — looping background video (served from /public/images) with heading, copy and CTA on top.
 const HeroBanner = () => {
   return (
-    <section className="relative w-full overflow-hidden bg-black min-h-[500px] md:h-[500px] flex items-center">
+    <section className="relative w-full overflow-hidden bg-black min-h-[500px] md:h-[600px] flex items-center">
       <video
         className="absolute inset-0 h-full w-full object-cover"
         src="/images/fleetx-video.mp4"
@@ -22,14 +22,10 @@ const HeroBanner = () => {
         <h1 className="max-w-4xl text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.05] tracking-wide text-white mb-6">
           Heavy-Duty Parts
           <br />
-          Engineered to Endure
-        </h1>
+Built for Power. Engineered to Last.        </h1>
 
         <p className="max-w-4xl text-lg md:text-xl leading-relaxed text-white mb-8">
-          FleetX is expertly engineered to help modern fleets improve efficiency, reduce operating costs,
-          and gain complete visibility into their vehicles. With intelligent fleet management, real-time
-          tracking, and data-driven insights, FleetX helps businesses make smarter decisions and keep their
-          fleets moving.
+       Keep your trucks running at their best with high-quality heavy-duty truck parts built for performance, durability, and reliability. From engine components to essential replacement parts, FleetX helps you find the right parts to reduce downtime, maintain efficiency, and keep your fleet moving.
         </p>
 
         <Link

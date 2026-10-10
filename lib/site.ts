@@ -41,3 +41,26 @@ export function pageMetadata({ title, description, path, keywords, image }: Page
     },
   };
 }
+
+/** Business contact details (NAP) — used by the footer and its LocalBusiness structured data. */
+export const CONTACT = {
+  phone: '917-293-3704',
+  /** E.164 format for tel: links and schema.org. */
+  phoneE164: '+19172933704',
+  email: 'support@fleetxusa.com',
+  street: '415 E 31 Street',
+  city: 'Anderson',
+  region: 'IN',
+  postalCode: '46016',
+  country: 'US',
+  hoursLabel: 'Mon–Fri 9:00 AM–6:00 PM ET',
+} as const;
+
+/** Official social profiles (icons render in this order). Leave a URL empty to hide that icon. */
+export const SOCIAL_PROFILES: Record<'facebook' | 'instagram' | 'tiktok' | 'x' | 'youtube', string> = {
+  facebook: 'https://www.facebook.com/fleetxusa',
+  instagram: 'https://www.instagram.com/fleetxusa',
+  tiktok: 'https://www.tiktok.com/@fleetxusa',
+  x: 'https://x.com/fleetxusa',
+  youtube: 'https://www.youtube.com/@fleetxusa',
+};
