@@ -8,7 +8,9 @@ import Link from 'next/link';
 import { api, ApiError } from '@/lib/api';
 import { formatMoney, refreshCart, useCart } from '@/lib/cart';
 import { useAuth } from '@/context/AuthContext';
-import type { Address, Order, PaymentMethod, Totals } from '@/lib/types';
+import type { Address, Order, PaymentMethod, PaymentStart, Totals } from '@/lib/types';
+import StripePaymentForm, { confirmStripePayment, toCents } from './StripePaymentForm';
+import type { StripeHandle } from './StripePaymentForm';
 
 type Step = 'shipping' | 'billing' | 'payment';
 const ORDER: Step[] = ['shipping', 'billing', 'payment'];
@@ -47,6 +49,7 @@ const Section = ({
   done,
   summary,
   onEdit,
+  locked = false,
   children,
 }: {
   title: string;
@@ -54,12 +57,13 @@ const Section = ({
   done: boolean;
   summary?: ReactNode;
   onEdit: () => void;
+  locked?: boolean;
   children: ReactNode;
 }) => (
   <section className="border-t border-gray-300 py-6 first:border-t-0">
     <div className="flex items-baseline justify-between gap-4">
       <h2 className={`text-2xl font-bold ${active || done ? 'text-gray-900' : 'text-gray-800'}`}>{title}</h2>
-      {done && !active && (
+      {done && !active && !locked && (
         <button type="button" onClick={onEdit} className="text-sm text-[#00a550] hover:underline">
           Edit
         </button>
@@ -172,6 +176,10 @@ export default function CheckoutForm() {
   const [couponBusy, setCouponBusy] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState('');
+  // Card payments: Stripe form handle + the order once created (kept so a declined card can retry
+  // on the same order instead of creating a duplicate).
+  const [stripeHandle, setStripeHandle] = useState<StripeHandle | null>(null);
+  const [pending, setPending] = useState<{ order: Order; payment: PaymentStart } | null>(null);
 
   // Payment methods enabled on the server
   useEffect(() => {
@@ -201,6 +209,8 @@ export default function CheckoutForm() {
 
   // A coupon preview is only valid for the cart it was calculated for.
   const coupon = appliedCoupon && appliedCoupon.totals.subtotal === cartTotals.subtotal ? appliedCoupon : null;
+
+  const stripeKey = methods.find((m) => m.code === 'stripe')?.publishable_key ?? '';
 
   const reached = (s: Step) => ORDER.indexOf(step) > ORDER.indexOf(s);
   const totals = coupon?.totals ?? cartTotals;
@@ -247,15 +257,64 @@ export default function CheckoutForm() {
     }
   };
 
+  const orderPath = (o: Order) => `/orders/${o.order_number}?key=${o.access_key}`;
+
+  /** Card payment: confirm with Stripe, sync the order, then show the order page. */
+  const payByCard = async (o: Order, payment: PaymentStart) => {
+    if (!stripeHandle || !payment.client_secret) {
+      // Payment couldn't start - the order is saved and can be paid from its page.
+      await refreshCart();
+      window.location.assign(`${orderPath(o)}&placed=1&payment=cancelled`);
+      return;
+    }
+    const billTo = sameAsShipping ? shipping : billing;
+    const result = await confirmStripePayment(stripeHandle, {
+      clientSecret: payment.client_secret,
+      returnUrl: `${window.location.origin}${orderPath(o)}&placed=1&payment=success`,
+      billing: { name: billTo.full_name, email: email.trim(), phone: billTo.phone },
+    });
+    if (!result.ok) {
+      setPlacing(false);
+      setPlaceError(`${result.message} Your order #${o.order_number} is saved - you can try again or use another card.`);
+      return;
+    }
+    // Server checks the payment with Stripe and marks the order paid (webhook does the same as a backup).
+    await api(`/payments/${o.order_number}/confirm`, { method: 'POST', query: { key: o.access_key } }).catch(() => undefined);
+    await refreshCart();
+    window.location.assign(`${orderPath(o)}&placed=1&payment=success`);
+  };
+
   const placeOrder = async () => {
     if (!method) {
       setPlaceError('No payment method is available right now. Please contact us to complete your order.');
       return;
     }
+    const byCard = method === 'stripe';
     setPlacing(true);
     setPlaceError('');
+
+    if (byCard) {
+      if (!stripeHandle) {
+        setPlacing(false);
+        setPlaceError('The card form is still loading. Please wait a moment.');
+        return;
+      }
+      // Validate the card fields before the order is created.
+      const { error } = await stripeHandle.elements.submit();
+      if (error) {
+        setPlacing(false);
+        setPlaceError(error.message ?? 'Please check your card details.');
+        return;
+      }
+      // Declined earlier? Retry payment on the same order.
+      if (pending) {
+        await payByCard(pending.order, pending.payment);
+        return;
+      }
+    }
+
     try {
-      const res = await api<{ order: Order; payment: { redirect_url?: string }; payment_error: string | null }>('/orders', {
+      const res = await api<{ order: Order; payment: PaymentStart; payment_error: string | null }>('/orders', {
         method: 'POST',
         body: {
           email: email.trim(),
@@ -275,14 +334,20 @@ export default function CheckoutForm() {
           () => undefined
         );
       }
-      await refreshCart();
 
+      if (byCard) {
+        setPending({ order, payment: payment ?? {} });
+        await payByCard(order, payment ?? {});
+        return;
+      }
+
+      await refreshCart();
       if (payment?.redirect_url) {
-        window.location.href = payment.redirect_url; // hosted payment page (Stripe)
+        window.location.href = payment.redirect_url; // hosted payment page
         return;
       }
       // full page load: /orders/<number> is served by .htaccess (static export)
-      window.location.assign(`/orders/${order.order_number}?key=${order.access_key}&placed=1`);
+      window.location.assign(`${orderPath(order)}&placed=1`);
     } catch (err) {
       setPlacing(false);
       if (!(err instanceof ApiError)) {
@@ -315,7 +380,7 @@ export default function CheckoutForm() {
     return <div className="min-h-[60vh] bg-white" />;
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && !pending) {
     return (
       <div className="w-full bg-white font-display">
         <div className="max-w-[700px] mx-auto px-4 py-20 text-center">
@@ -357,6 +422,7 @@ export default function CheckoutForm() {
               done={reached('shipping')}
               summary={<AddressSummary a={shipping} />}
               onEdit={() => setStep('shipping')}
+              locked={!!pending}
             >
               <form onSubmit={submitShipping} noValidate>
                 {!isAuthenticated && (
@@ -426,6 +492,7 @@ export default function CheckoutForm() {
               done={reached('billing')}
               summary={sameAsShipping ? <p>Same as shipping address</p> : <AddressSummary a={billing} />}
               onEdit={() => setStep('billing')}
+              locked={!!pending}
             >
               <form onSubmit={submitBilling} noValidate>
                 <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
@@ -467,6 +534,7 @@ export default function CheckoutForm() {
                       value={m.code}
                       checked={method === m.code}
                       onChange={() => setMethod(m.code)}
+                      disabled={!!pending}
                       className="mt-1 h-4 w-4 accent-[#00a550]"
                     />
                     <span>
@@ -476,6 +544,22 @@ export default function CheckoutForm() {
                   </label>
                 ))}
               </fieldset>
+
+              {method === 'stripe' && stripeKey && (
+                <div className="mt-5 border border-gray-300 p-4 sm:p-5">
+                  {pending && (
+                    <p className="mb-4 text-sm text-gray-700">
+                      Order <strong>#{pending.order.order_number}</strong> is saved. Complete your payment below.
+                    </p>
+                  )}
+                  <StripePaymentForm
+                    publishableKey={stripeKey}
+                    amount={toCents(pending ? pending.order.grand_total : totals.grand_total)}
+                    currency={(pending?.order.currency ?? totals.currency ?? 'USD').toLowerCase()}
+                    onReady={setStripeHandle}
+                  />
+                </div>
+              )}
 
               <label className="mt-5 block">
                 <span className="block mb-1 text-sm text-gray-700">Order notes (optional)</span>
@@ -498,10 +582,16 @@ export default function CheckoutForm() {
               <button
                 type="button"
                 onClick={placeOrder}
-                disabled={placing || issues.length > 0}
+                disabled={placing || (issues.length > 0 && !pending) || (method === 'stripe' && !stripeHandle)}
                 className="mt-6 h-[46px] w-full sm:w-auto px-10 text-sm font-bold uppercase text-white bg-gradient-to-r from-[#e9e611] to-[#00a34f] hover:opacity-90 transition-opacity disabled:opacity-50"
               >
-                {placing ? 'Placing order…' : `Place Order · ${formatMoney(totals.grand_total)}`}
+                {placing
+                  ? method === 'stripe' ? 'Processing payment…' : 'Placing order…'
+                  : pending
+                    ? `Pay ${formatMoney(pending.order.grand_total)}`
+                    : method === 'stripe'
+                      ? `Pay & Place Order · ${formatMoney(totals.grand_total)}`
+                      : `Place Order · ${formatMoney(totals.grand_total)}`}
               </button>
               <p className="mt-3 text-xs text-gray-500">
                 By placing your order you agree to our{' '}
@@ -557,9 +647,11 @@ export default function CheckoutForm() {
                 <div className="flex justify-between text-[#00a550]">
                   <dt>
                     Coupon ({coupon.code}){' '}
-                    <button type="button" onClick={() => setCoupon(null)} className="ml-1 text-xs text-gray-500 underline">
-                      remove
-                    </button>
+                    {!pending && (
+                      <button type="button" onClick={() => setCoupon(null)} className="ml-1 text-xs text-gray-500 underline">
+                        remove
+                      </button>
+                    )}
                   </dt>
                   <dd>{coupon.free_shipping ? 'Free shipping' : `−${formatMoney(coupon.discount)}`}</dd>
                 </div>
@@ -574,7 +666,7 @@ export default function CheckoutForm() {
               </div>
             </dl>
 
-            <div className="px-5 pb-6">
+            {!pending && <div className="px-5 pb-6">
               <label htmlFor="coupon" className="block text-sm text-gray-800 mb-2">
                 Coupon/Gift Certificate
               </label>
@@ -601,7 +693,7 @@ export default function CheckoutForm() {
                 </button>
               </div>
               {couponMessage && <p className="mt-2 text-xs text-red-600">{couponMessage}</p>}
-            </div>
+            </div>}
 
             <div className="flex items-center justify-between border-t border-gray-300 px-5 py-5">
               <span className="text-sm text-gray-800">Total ({totals.currency})</span>

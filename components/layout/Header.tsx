@@ -125,6 +125,123 @@ const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
   const navRef = useRef<HTMLDivElement>(null);
   const headerBarRef = useRef<HTMLElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Search panel: focus on open, close on Escape and on navigation
+  useEffect(() => {
+    if (!isSearchOpen) return undefined;
+    searchInputRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setIsSearchOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isSearchOpen]);
+
+  useEffect(() => {
+    setIsSearchOpen(false);
+  }, [pathname]);
+
+  const toggleSearch = () => {
+    setOpenMenu(null);
+    setIsSearchOpen((v) => !v);
+  };
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (!q) return searchInputRef.current?.focus();
+    setIsSearchOpen(false);
+    navigate(`/products?q=${encodeURIComponent(q)}`);
+  };
+
+  const searchIcon = (cls: string) =>
+    React.createElement(
+      'svg',
+      { className: cls, fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'aria-hidden': true },
+      React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', strokeWidth: 2, d: 'M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z' })
+    );
+
+  const renderSearchButton = (extra = '') =>
+    React.createElement(
+      'button',
+      {
+        type: 'button',
+        onClick: toggleSearch,
+        'aria-label': isSearchOpen ? 'Close search' : 'Search parts',
+        'aria-expanded': isSearchOpen,
+        'aria-controls': 'header-search-panel',
+        className: `flex items-center justify-center w-9 h-9 rounded-full text-white transition-colors hover:bg-gradient-to-r hover:from-[#e9e611] hover:to-[#00a34f] ${isSearchOpen ? 'bg-white/15' : ''} ${extra}`
+      },
+      isSearchOpen
+        ? React.createElement(
+            'svg',
+            { className: 'w-6 h-6', fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24', 'aria-hidden': true },
+            React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', strokeWidth: 2, d: 'M6 18L18 6M6 6l12 12' })
+          )
+        : searchIcon('w-6 h-6')
+    );
+
+  const renderSearchPanel = () =>
+    isSearchOpen &&
+    React.createElement(
+      React.Fragment,
+      null,
+      // dimmed backdrop over the page; click to close
+      React.createElement('div', {
+        'aria-hidden': true,
+        onClick: () => setIsSearchOpen(false),
+        className: 'fixed inset-0 top-[var(--hdr-h)] -z-10 bg-black/50',
+        style: { ['--hdr-h' as string]: `${headerHeight}px` }
+      }),
+      React.createElement(
+        'div',
+        { id: 'header-search-panel', className: 'absolute left-0 right-0 top-full bg-black border-b border-white/10 shadow-2xl font-sans animate-[fadeIn_.15s_ease-out]' },
+        React.createElement(
+          'form',
+          { role: 'search', onSubmit: submitSearch, className: 'max-w-3xl mx-auto px-4 py-5 md:py-7' },
+          React.createElement('label', { htmlFor: 'header-search-input', className: 'sr-only' }, 'Search truck parts by part number or keyword'),
+          React.createElement(
+            'div',
+            { className: 'flex overflow-hidden rounded-lg bg-white ring-2 ring-transparent focus-within:ring-[#00a550]' },
+            React.createElement('span', { className: 'flex items-center pl-4 text-gray-400' }, searchIcon('w-5 h-5')),
+            React.createElement('input', {
+              id: 'header-search-input',
+              ref: searchInputRef,
+              type: 'search',
+              name: 'q',
+              value: searchQuery,
+              onChange: (e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value),
+              autoComplete: 'off',
+              placeholder: 'Part number or keyword',
+              className: 'min-w-0 flex-1 bg-transparent px-3 py-3.5 text-base text-gray-900 placeholder:text-gray-500 focus:outline-none'
+            }),
+            React.createElement(
+              'button',
+              { type: 'submit', className: 'm-1.5 rounded-md bg-gradient-to-r from-[#e9e611] to-[#00a34f] px-5 sm:px-8 text-sm font-semibold uppercase tracking-wide text-white hover:opacity-90' },
+              'Search'
+            )
+          ),
+          React.createElement(
+            'div',
+            { className: 'mt-3 flex flex-wrap items-center gap-2 text-sm' },
+            React.createElement('span', { className: 'text-gray-400' }, 'Popular:'),
+            ...['DD15', 'V-band clamp', 'Oil filter', 'Coolant hose', 'O-ring'].map((t) =>
+              React.createElement(
+                Link,
+                {
+                  key: t,
+                  href: `/products?q=${encodeURIComponent(t)}`,
+                  onClick: () => setIsSearchOpen(false),
+                  className: 'rounded-full border border-white/25 px-3 py-1 text-gray-200 hover:border-[#00a550] hover:text-white transition-colors'
+                },
+                t
+              )
+            )
+          )
+        )
+      )
+    );
 
   useEffect(() => {
     const el = headerBarRef.current;
@@ -561,6 +678,7 @@ const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
               { href: `tel:${phone.replace(/[^0-9+]/g, '')}`, className: 'text-lg font-semibold text-white hover:text-[#00a550] transition-colors' },
               phone
             ),
+            renderSearchButton(),
             renderAccountIcon(),
             React.createElement(
               'button',
@@ -585,7 +703,8 @@ const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
               )
             )
           ),
-          // Mobile menu button
+          // Mobile search + menu buttons
+          React.createElement('div', { className: 'lg:hidden ml-auto -mr-1' }, renderSearchButton()),
           React.createElement(
             'button',
             {
@@ -609,6 +728,9 @@ const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
         )
       )
     ),
+
+    // ---- Expanding search panel (drops over the banner) ----
+    renderSearchPanel(),
 
     // ---- Mobile menu (slide-in drawer) ----
     React.createElement(MobileDrawer, {

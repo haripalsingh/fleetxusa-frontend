@@ -210,7 +210,10 @@ export type Order = {
   history?: { status: string; note: string | null; created_at: string }[];
 };
 
-export type PaymentMethod = { code: string; label: string; description: string };
+export type PaymentMethod = { code: string; label: string; description: string; publishable_key?: string };
+
+/** What POST /orders and POST /payments/{n}/retry return to start a payment. */
+export type PaymentStart = { redirect_url?: string; provider?: string; client_secret?: string; publishable_key?: string; amount?: number; currency?: string };
 
 // ---- Parts diagrams ("Shop by Diagram") -------------------------------------------
 export type DiagramAssemblySummary = {

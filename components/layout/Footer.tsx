@@ -250,7 +250,7 @@ const Footer = () => {
           <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
             <a
               href={`tel:${CONTACT.phoneE164}`}
-              className={`flex items-center justify-center rounded-lg bg-gradient-to-r from-[#e9e611] to-[#00a34f] px-5 py-3 text-sm font-bold text-black transition-opacity hover:opacity-90 ${focusRing}`}
+              className={`flex items-center justify-center rounded-lg bg-gradient-to-r from-[#e9e611] to-[#00a34f] px-5 py-3 text-sm font-semibold text-white transition-opacity hover:opacity-90 ${focusRing}`}
             >
               Call {CONTACT.phone}
             </a>

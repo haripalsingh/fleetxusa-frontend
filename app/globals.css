@@ -34,3 +34,9 @@ body {
 }
 .fx-menu-in { animation: fx-menu-in 160ms ease-out both; }
 @media (prefers-reduced-motion: reduce) { .fx-menu-in { animation: none; } }
+
+/* Header search panel drop-in */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}

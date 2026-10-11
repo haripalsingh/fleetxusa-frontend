@@ -2,12 +2,14 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { api, ApiError, formatDate, formatMoney, productUrl } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
-import type { Address, Order } from '@/lib/types';
+import type { Address, Order, PaymentStart } from '@/lib/types';
+import StripePaymentForm, { confirmStripePayment } from './StripePaymentForm';
+import type { StripeHandle } from './StripePaymentForm';
 import OrderStatusBadge from './account/OrderStatusBadge';
 
 const STEPS = ['pending', 'processing', 'shipped', 'delivered'] as const;
@@ -44,13 +46,19 @@ export default function OrderDetails() {
   const params = useSearchParams();
   const key = params.get('key') ?? undefined;
   const justPlaced = params.get('placed') === '1';
-  const payment = params.get('payment'); // success | cancelled (Stripe return)
+  // success | cancelled - also covers Stripe's own return (?redirect_status=succeeded|failed)
+  const redirectStatus = params.get('redirect_status');
+  const payment = redirectStatus === 'failed' ? 'cancelled' : params.get('payment');
   const { loading: authLoading, isAuthenticated } = useAuth();
 
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState<{ status: number; message: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState('');
+  // "Pay now": inline Stripe card form for an unpaid order
+  const [payStart, setPayStart] = useState<PaymentStart | null>(null);
+  const [payHandle, setPayHandle] = useState<StripeHandle | null>(null);
+  const synced = useRef(false);
 
   const load = useCallback(
     () =>
@@ -77,12 +85,19 @@ export default function OrderDetails() {
     return () => clearTimeout(t);
   }, [authLoading, isAuthenticated, load]);
 
-  // Stripe confirms payment by webhook a moment after the redirect - poll briefly.
+  // Just paid: ask the API to check the payment with Stripe once, then poll briefly (webhook backup).
   useEffect(() => {
     if (payment !== 'success' || !order || order.payment_status === 'paid') return;
+    if (!synced.current) {
+      synced.current = true;
+      api(`/payments/${order.order_number}/confirm`, { method: 'POST', query: { key } })
+        .catch(() => undefined)
+        .then(load);
+      return;
+    }
     const t = setTimeout(load, 3000);
     return () => clearTimeout(t);
-  }, [payment, order, load]);
+  }, [payment, order, load, key]);
 
   const cancel = async () => {
     if (!order || !confirm('Cancel this order?')) return;
@@ -103,12 +118,35 @@ export default function OrderDetails() {
     setBusy(true);
     setActionError('');
     try {
-      const res = await api<{ redirect_url?: string }>(`/payments/${order.order_number}/retry`, { method: 'POST', query: { key } });
-      if (res.data.redirect_url) window.location.href = res.data.redirect_url;
+      const res = await api<PaymentStart>(`/payments/${order.order_number}/retry`, { method: 'POST', query: { key } });
+      if (res.data.redirect_url) {
+        window.location.href = res.data.redirect_url;
+        return;
+      }
+      if (res.data.client_secret && res.data.publishable_key) setPayStart(res.data);
+      else setActionError('Could not start payment. Please contact us.');
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Could not start payment.');
+    } finally {
       setBusy(false);
     }
+  };
+
+  const submitCard = async () => {
+    if (!order || !payHandle) return;
+    setBusy(true);
+    setActionError('');
+    const base = `${window.location.origin}/orders/${order.order_number}?key=${key ?? order.access_key ?? ''}`;
+    const result = await confirmStripePayment(payHandle, { returnUrl: `${base}&payment=success` });
+    if (!result.ok) {
+      setActionError(result.message);
+      setBusy(false);
+      return;
+    }
+    await api(`/payments/${order.order_number}/confirm`, { method: 'POST', query: { key } }).catch(() => undefined);
+    setPayStart(null);
+    setBusy(false);
+    await load();
   };
 
   if (error) {
@@ -178,7 +216,7 @@ export default function OrderDetails() {
                 <OrderStatusBadge status={order.payment_status} />
               </div>
               <div className="flex gap-3">
-                {order.can_pay && (
+                {order.can_pay && !payStart && (
                   <button type="button" onClick={payNow} disabled={busy} className="h-10 px-5 rounded-md text-sm font-semibold text-white bg-gradient-to-r from-[#e9e611] to-[#00a34f] disabled:opacity-50">
                     Pay now
                   </button>
@@ -190,7 +228,27 @@ export default function OrderDetails() {
                 )}
               </div>
             </div>
-            {actionError && <p className="mt-3 text-sm text-red-600">{actionError}</p>}
+            {actionError && <p role="alert" className="mt-3 text-sm text-red-600">{actionError}</p>}
+
+            {payStart?.client_secret && payStart.publishable_key && order.payment_status !== 'paid' && (
+              <div className="mt-5 border border-gray-200 rounded-lg p-4 sm:p-5">
+                <h2 className="mb-4 text-base font-bold text-gray-900">Pay {formatMoney(order.grand_total)} by card</h2>
+                <StripePaymentForm publishableKey={payStart.publishable_key} clientSecret={payStart.client_secret} onReady={setPayHandle} />
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={submitCard}
+                    disabled={busy || !payHandle}
+                    className="h-11 px-8 rounded-md text-sm font-semibold text-white bg-gradient-to-r from-[#e9e611] to-[#00a34f] hover:opacity-90 disabled:opacity-50"
+                  >
+                    {busy ? 'Processing…' : `Pay ${formatMoney(order.grand_total)}`}
+                  </button>
+                  <button type="button" onClick={() => setPayStart(null)} disabled={busy} className="h-11 px-5 text-sm text-gray-600 hover:underline">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
 
             {!cancelled && stepIndex >= 0 && (
               <ol className="mt-6 grid grid-cols-4 gap-2" aria-label="Order progress">

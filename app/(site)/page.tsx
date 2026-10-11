@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { pageMetadata, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
-import HeroBanner from "@/components/Herobanner";
-import ExploreMore from "@/components/ExploreMore";
-import QuickActions from "@/components/QuickActions";
-import ProductCategories from "@/components/ProductCategories";
-import AwardsSection from "@/components/AwardsSection";
+import HeroBanners from "@/components/home/HeroBanners";
+import ShopByCategory from "@/components/home/ShopByCategory";
+import ShopByEngine from "@/components/home/ShopByEngine";
+import FeaturedProducts from "@/components/home/FeaturedProducts";
+import FleetOrdersBanner from "@/components/home/FleetOrdersBanner";
+import WhyFleetX from "@/components/home/WhyFleetX";
 
 export const metadata: Metadata = pageMetadata({
   title: `Heavy-Duty Truck Parts for Fleets | ${SITE_NAME}`,
@@ -15,11 +16,12 @@ export const metadata: Metadata = pageMetadata({
 export default function Home() {
   return (
     <main className="flex-1">
-      <HeroBanner />
-      <ProductCategories />
-      <AwardsSection />
-      <ExploreMore />
-      <QuickActions />
+      <HeroBanners />
+      <ShopByCategory />
+      <ShopByEngine />
+      <FeaturedProducts />
+      <FleetOrdersBanner />
+      <WhyFleetX />
     </main>
   );
 }
