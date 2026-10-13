@@ -28,7 +28,7 @@ const ShopByEngine = () => (
     <div className="mx-auto max-w-[1320px] px-4">
       <SectionHeading id="shop-engine-heading" eyebrow="Engine parts" title="Find Parts by Engine Diagram" dark />
 
-      <ol className="mb-8 grid gap-3 sm:grid-cols-3">
+      {/* <ol className="mb-8 grid gap-3 sm:grid-cols-3">
         {STEPS.map((s, i) => (
           <li key={s} className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] px-4 py-3 text-sm text-gray-200">
             <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-[#e9e611] to-[#00a34f] text-xs font-bold text-black">
@@ -37,7 +37,7 @@ const ShopByEngine = () => (
             {s}
           </li>
         ))}
-      </ol>
+      </ol> */}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {ENGINES.map((e) => (
