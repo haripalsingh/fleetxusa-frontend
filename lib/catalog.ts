@@ -157,8 +157,20 @@ export async function getAllProductParamsForBuild(): Promise<{ category: string;
   return requireData('products', [...params.values()]);
 }
 
-/** Every diagram assembly slug in one engine section (Detroit / Cummins). */
+/**
+ * Every diagram assembly slug in one engine section (Detroit / Cummins).
+ * A section with no diagrams yet (e.g. Cummins before any are added in the admin) builds one
+ * placeholder page that shows "not found", because a static export can't have zero pages for a route.
+ * If the API itself is down, getDiagramGroups() throws and the build stops as before.
+ */
+export const EMPTY_SECTION_SLUG = 'coming-soon';
+
 export async function getAllDiagramSlugs(section: EngineSectionKey): Promise<string[]> {
   const groups = groupsForSection(await getDiagramGroups(), section);
-  return requireData(`${ENGINE_SECTIONS[section].title} diagrams`, groups.flatMap((g) => g.assemblies.map((a) => a.slug)));
+  const slugs = groups.flatMap((g) => g.assemblies.map((a) => a.slug));
+  if (!slugs.length) {
+    console.warn(`[static export] No ${ENGINE_SECTIONS[section].title} diagrams yet - building a placeholder page.`);
+    return [EMPTY_SECTION_SLUG];
+  }
+  return slugs;
 }

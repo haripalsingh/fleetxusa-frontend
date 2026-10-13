@@ -2,9 +2,9 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ApiError, formatMoney, priceOrCall, priceRange, productUrl } from '@/lib/api';
+import { api, ApiError, formatMoney, priceOrCall, priceRange, productUrl } from '@/lib/api';
 import { addToCart } from '@/lib/cart';
 import type { Product } from '@/lib/types';
 
@@ -24,7 +24,16 @@ const PlayIcon = ({ className }: { className: string }) => (
 
 const PLACEHOLDER = '/images/fleet-x-icon.png';
 
-export default function ProductDetail({ product }: { product: Product }) {
+export default function ProductDetail({ product: built }: { product: Product }) {
+  // The page is pre-built (static export), so refresh price / stock / options from the API on open.
+  const [product, setProduct] = useState<Product>(built);
+  useEffect(() => {
+    const controller = new AbortController();
+    api<Product>(`/products/${encodeURIComponent(built.slug)}`, { signal: controller.signal })
+      .then((res) => setProduct(res.data))
+      .catch(() => undefined); // keep the built copy if the API is unreachable
+    return () => controller.abort();
+  }, [built.slug]);
   const variants = useMemo(() => product.variants.filter((v) => v.is_active), [product.variants]);
   const firstInStock = variants.find((v) => v.in_stock) ?? variants[0];
 

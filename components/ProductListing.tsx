@@ -143,8 +143,9 @@ export default function ProductListing({
             type: [...types],
             color: [...colors],
             brand: [...brands],
-            min_price: priceActive ? low : null,
-            max_price: priceActive ? high : null,
+            // slider at its end = no limit, so products priced above the built range still show
+            min_price: low > bounds.min ? low : null,
+            max_price: high < bounds.max ? high : null,
             sort,
             page,
             per_page: perPage,

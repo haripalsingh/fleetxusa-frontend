@@ -115,9 +115,8 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   if (body !== undefined) headers['Content-Type'] = 'application/json';
 
   const url = `${base}${path}${buildQuery(query)}`;
-  let res: Response;
-  try {
-    res = await fetch(url, {
+  const doFetch = () =>
+    fetch(url, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -125,6 +124,21 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
       ...(next ? { next } : {}),
       ...(cache ? { cache } : {}),
     });
+  let res: Response;
+  try {
+    // Server-side GETs (build / prerender) retry a few times: the shared host sometimes
+    // drops connections when many pages are generated at once.
+    const tries = server && method === 'GET' ? 4 : 1;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        res = await doFetch();
+        if (res.status >= 500 && attempt < tries) throw new Error(`HTTP ${res.status}`);
+        break;
+      } catch (e) {
+        if (attempt >= tries || (e instanceof DOMException && e.name === 'AbortError')) throw e;
+        await new Promise((r) => setTimeout(r, 1500 * attempt));
+      }
+    }
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') throw err;
     const cause = err instanceof Error ? `${err.message}${err.cause instanceof Error ? ` (${err.cause.message})` : ''}` : String(err);

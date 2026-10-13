@@ -42,5 +42,6 @@ export default async function CategoryPage({ params }: Props) {
     return <CatalogUnavailable error={err} />;
   }
 
-  return <ProductListing key={cat.slug} category={cat} initial={initial} />;
+  // fetchOnMount: the page is pre-built, so prices/stock refresh from the API on open
+  return <ProductListing key={cat.slug} category={cat} initial={initial} fetchOnMount />;
 }

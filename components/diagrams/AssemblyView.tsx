@@ -5,10 +5,10 @@
 // Exploded diagram with clickable callout numbers (hotspots) + the matching parts list.
 // Click a number → the part is highlighted in the list (and vice versa).
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import Link from 'next/link';
-import { ApiError, formatMoney, priceOrCall, productUrl } from '@/lib/api';
+import { api, ApiError, formatMoney, priceOrCall, productUrl } from '@/lib/api';
 import { addToCart } from '@/lib/cart';
 import type { DiagramAssembly, DiagramPart } from '@/lib/types';
 
@@ -173,13 +173,23 @@ function PartCard({
 }
 
 export default function AssemblyView({
-  assembly,
+  assembly: built,
   basePath = '/detroit-engine-parts',
 }: {
   assembly: DiagramAssembly;
   /** engine section the previous / next links stay in */
   basePath?: string;
 }) {
+  // Pages are pre-built (static export): refresh the parts' prices / stock from the API on open.
+  // Only `parts` is replaced - previous/next links stay as built for this engine section.
+  const [assembly, setAssembly] = useState<DiagramAssembly>(built);
+  useEffect(() => {
+    const controller = new AbortController();
+    api<DiagramAssembly>(`/diagrams/${encodeURIComponent(built.slug)}`, { signal: controller.signal })
+      .then((res) => setAssembly({ ...built, parts: res.data.parts }))
+      .catch(() => undefined); // keep the built copy if the API is unreachable
+    return () => controller.abort();
+  }, [built]);
   const [activeId, setActiveId] = useState<number | null>(null);
   const [hoverId, setHoverId] = useState<number | null>(null);
   const [showHotspots, setShowHotspots] = useState(true);

@@ -13,9 +13,14 @@ const DESCS: Record<string, string> = {
   seals: 'O-rings, gaskets & seals',
 };
 
+// Category pictures chosen for the home page (override the admin image when set).
+const IMAGES: Record<string, string> = {
+  filters: '/images/banners/water-separator.webp',
+};
+
 const FALLBACK: Tile[] = [
   { title: 'Clamps', slug: 'clamps', image: '/images/Clamps/20592783.JPG' },
-  { title: 'Filters', slug: 'filters', image: '/images/filter-cat.jpg' },
+  { title: 'Filters', slug: 'filters', image: IMAGES.filters },
   { title: 'Hoses', slug: 'hoses', image: '/images/Hoses/01-33096-000.JPG' },
   { title: 'Seals', slug: 'seals', image: '/images/Seals/3033247.JPG' },
 ];
@@ -26,7 +31,7 @@ const ShopByCategory = async () => {
     ? fromApi
         .filter((c) => !c.parent_id)
         .slice(0, 8)
-        .map((c) => ({ title: c.name, slug: c.slug, image: c.image_url || '/images/fleet-x-icon.png', count: c.product_count }))
+        .map((c) => ({ title: c.name, slug: c.slug, image: IMAGES[c.slug] || c.image_url || '/images/fleet-x-icon.png', count: c.product_count }))
     : FALLBACK;
 
   return (
@@ -41,7 +46,7 @@ const ShopByCategory = async () => {
                 href={`/products/${t.slug}`}
                 className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:-translate-y-1 hover:border-[#00a550] hover:shadow-xl"
               >
-                <div className="relative aspect-[4/3] w-full bg-white p-4">
+                <div className="relative aspect-square w-full overflow-hidden bg-white p-5">
                   <img
                     src={t.image}
                     alt={`${t.title} for heavy-duty trucks`}

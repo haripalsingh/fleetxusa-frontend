@@ -45,7 +45,7 @@ export default function ProductsPageClient({
       initial={initial}
       query={q}
       scope={categories.map((c) => c.slug)}
-      fetchOnMount={!!q}
+      fetchOnMount // refresh prices/stock on open (pages are pre-built)
     />
   );
 }

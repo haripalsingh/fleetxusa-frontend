@@ -12,6 +12,13 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // The build fetches every page's data from the live PHP API (GoDaddy). Too many parallel
+  // workers overload it and requests time out, so build gently and retry failed pages.
+  experimental: {
+    cpus: 2,
+    staticGenerationMaxConcurrency: 4,
+    staticGenerationRetryCount: 3,
+  },
 };
 
 module.exports = nextConfig;
