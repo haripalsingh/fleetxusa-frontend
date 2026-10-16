@@ -596,11 +596,15 @@ export default function CheckoutForm() {
               <p className="mt-3 text-xs text-gray-500">
                 By placing your order you agree to our{' '}
                 <Link href="/terms-conditions" className="underline">
-                  terms
+                  Terms &amp; Conditions
+                </Link>
+                ,{' '}
+                <Link href="/shipping-return-policy" className="underline">
+                  Shipping Policy
                 </Link>{' '}
                 and{' '}
-                <Link href="/shipping-return-policy" className="underline">
-                  shipping &amp; return policy
+                <Link href="/cancellation-refund-policy" className="underline">
+                  Return &amp; Refund Policy
                 </Link>
                 .
               </p>

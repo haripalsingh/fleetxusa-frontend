@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import LiveCategoryItem from '@/components/LiveCategoryItem';
+import SecurePayments from './SecurePayments';
 import { CONTACT, SITE_NAME, SITE_URL, SOCIAL_PROFILES } from '@/lib/site';
 
 type FooterLink = { label: string; href: string; title?: string };
@@ -33,8 +35,8 @@ const LINK_GROUPS: { id: string; heading: string; links: FooterLink[] }[] = [
     links: [
       { label: 'Contact Us', href: '/contact' },
       { label: 'FAQs', href: '/faqs' },
-      { label: 'Shipping & Returns', href: '/shipping-return-policy' },
-      { label: 'Cancellations & Refunds', href: '/cancellation-refund-policy' },
+      { label: 'Shipping Policy', href: '/shipping-return-policy' },
+      { label: 'Return & Refund Policy', href: '/cancellation-refund-policy' },
       { label: 'Track My Orders', href: '/account/orders' },
       { label: 'About FleetX', href: '/about' },
     ],
@@ -230,11 +232,13 @@ const Footer = () => {
               <div className="mt-2 mb-3 h-1 w-12 bg-gradient-to-r from-[#00a550] to-[#f8ef05]" aria-hidden="true" />
               <ul className="flex flex-col gap-1">
                 {group.links.map((link) => (
-                  <li key={link.href + link.label}>
-                    <Link href={link.href} title={link.title} className={linkClass}>
-                      {link.label}
-                    </Link>
-                  </li>
+                  <LiveCategoryItem key={link.href + link.label} href={link.href}>
+                    <li>
+                      <Link href={link.href} title={link.title} className={linkClass}>
+                        {link.label}
+                      </Link>
+                    </li>
+                  </LiveCategoryItem>
                 ))}
               </ul>
             </nav>
@@ -262,6 +266,9 @@ const Footer = () => {
             </Link>
           </div>
         </div>
+
+        {/* Secure payments (Stripe) */}
+        <SecurePayments />
       </div>
 
       {/* Bottom bar */}

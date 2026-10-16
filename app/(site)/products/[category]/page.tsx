@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { pageMetadata } from '@/lib/site';
 import ProductListing from '@/components/ProductListing';
 import CatalogUnavailable from '@/components/CatalogUnavailable';
+import CategoryGuard from '@/components/CategoryGuard';
 import { getAllCategorySlugs, getCategory, getProducts, hiddenCategoryPath, isHiddenCategory } from '@/lib/catalog';
 import type { Category, ProductListResult } from '@/lib/types';
 
@@ -43,5 +44,10 @@ export default async function CategoryPage({ params }: Props) {
   }
 
   // fetchOnMount: the page is pre-built, so prices/stock refresh from the API on open
-  return <ProductListing key={cat.slug} category={cat} initial={initial} fetchOnMount />;
+  // CategoryGuard: shows "no longer available" if the category was removed in admin after the build
+  return (
+    <CategoryGuard slug={cat.slug}>
+      <ProductListing key={cat.slug} category={cat} initial={initial} fetchOnMount />
+    </CategoryGuard>
+  );
 }

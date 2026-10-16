@@ -4,137 +4,155 @@ import PolicyPage from '@/components/PolicyPage';
 import type { PolicySection } from '@/components/PolicyPage';
 
 const DESCRIPTION =
-  `Review the terms and conditions governing your use of the Fleet X Parts website and services.`;
+  `Read the Fleet X USA Terms & Conditions covering orders, pricing, part fitment, payment, shipping, returns, warranty, and use of www.fleetxusa.com.`;
 
 export const metadata: Metadata = pageMetadata({
-  title: 'Terms of Service & Terms and Conditions | Fleet X Parts',
+  title: "Terms & Conditions | Fleet X Parts",
   description: DESCRIPTION,
-  keywords: 'terms of service, terms and conditions, Fleet X Parts',
-  path: '/terms-conditions',
+  keywords: "terms and conditions, terms of service, truck parts warranty, part fitment, Fleet X USA, Fleet X Parts",
+  path: "/terms-conditions",
 });
 
-const p = (text: string) => ({ type: 'p' as const, text });
-
 const SECTIONS: PolicySection[] = [
-  { level: 3, heading: `1) Updates to These Terms`, blocks: [
-    p(`We may update these Terms from time to time at our sole discretion. If we make material changes, we may post a notice on the Service or provide other electronic notice. Changes become effective when posted (or on a stated effective date). Changes will not apply retroactively to completed transactions unless required by law. Your continued use of the Service confirms your acceptance of the updated Terms.`),
-  ] },
-  { level: 3, heading: `2) Eligibility (Age Requirement)`, blocks: [
-    p(`The Service is not intended for anyone under 18 years of age (or the age of majority where you live). If you are under the applicable age, you must not use the Service.`),
-  ] },
-
-  { level: 2, heading: `Service Ownership, Content, and Permitted Use` },
-  { level: 3, heading: `3) Ownership of the Service and Content`, blocks: [
-    p(`The Service and all content made available through it—including text, product descriptions, images, graphics, logos, videos, audio, and other materials (collectively, "Service Content")—are owned by FLEET X PARTS or our licensors, and are protected by intellectual property laws.`),
-    p(`We may include content owned by third parties; we do not claim ownership over third-party content.`),
-  ] },
-  { level: 3, heading: `4) Limited License`, blocks: [
-    p(`You may view, download, and print reasonable portions of Service Content for your personal, non-commercial use. Except as permitted by law or expressly authorized in writing by us, you may not copy, reproduce, modify, distribute, display, publish, transmit, create derivative works from, or exploit any Service Content.`),
-  ] },
-  { level: 3, heading: `5) Linking Policy`, blocks: [
-    p(`You may link to our homepage in a manner that does not imply our sponsorship or endorsement. We may revoke linking permission at any time.`),
-  ] },
-
-  { level: 2, heading: `Prohibited Activities` },
-  { level: 3, heading: `6) Prohibited Uses`, blocks: [
-    p(`You agree not to, and not to assist others to:`),
-    { type: 'ul', items: [
-      `Use scraping tools, crawlers, robots, spiders, data-mining tools, or automated means to access, collect, or copy data from the Service`,
-      `Access the Service by any means other than the interfaces we provide`,
-      `Attempt to hack, bypass security, disrupt, or interfere with the Service, servers, or networks`,
-      `Overload the Service with unreasonable requests or otherwise interfere with normal operation`,
-      `Frame, mirror, or repurpose the Service or Service Content for commercial use`,
-      `Use the Service for any illegal purpose or in violation of applicable laws`,
-      `Misrepresent your identity, impersonate others, or submit false information`,
-    ] },
-    p(`We may suspend or terminate access for actual or suspected violations.`),
-  ] },
-
-  { level: 2, heading: `Product Information, Fitment, and Orders` },
-  { level: 3, heading: `7) Product Information and Fitment`, blocks: [
-    p(`Truck parts fitment can vary by VIN, engine, model year, trim, axle ratio, emissions configuration, and other factors. While we may provide guidance, you are responsible for verifying compatibility and fitment before purchasing.`),
-  ] },
-  { level: 3, heading: `8) Pricing, Availability, and Errors`, blocks: [
-    p(`Prices, promotions, and availability may change without notice. We reserve the right to correct pricing or listing errors and to cancel or refuse orders affected by errors (and refund amounts paid, if any).`),
-  ] },
-  { level: 3, heading: `9) Order Acceptance and Cancellation`, blocks: [
-    p(`We reserve the right to accept, refuse, or cancel any order for any reason permitted by law (including suspected fraud, inventory issues, or verification problems).`),
-    p(`Order cancellations and refunds are governed by our Cancellation & Refund Policy, which is incorporated by reference into these Terms.`),
-  ] },
-
-  { level: 2, heading: `Accounts and Security` },
-  { level: 3, heading: `10) User Accounts (If Offered)`, blocks: [
-    p(`If you create an account, you agree to provide accurate and current information and to maintain the confidentiality of your login credentials. You are responsible for all activity under your account, including unauthorized activity resulting from your failure to safeguard credentials. Notify us immediately if you believe your account has been compromised.`),
-  ] },
-
-  { level: 2, heading: `User-Generated Content (UGC)` },
-  { level: 3, heading: `11) UGC and Acceptable Conduct (If Offered)`, blocks: [
-    p(`If the Service allows reviews, comments, chat, uploads, or other user-submitted content ("UGC"), you agree not to submit content that is unlawful, defamatory, harassing, obscene, fraudulent, infringing, or otherwise objectionable. You also agree not to post personal information of others (such as addresses, phone numbers, or financial information).`),
-  ] },
-  { level: 3, heading: `12) License to UGC`, blocks: [
-    p(`If you submit UGC, you grant FLEET X PARTS a non-exclusive, royalty-free, worldwide, perpetual, irrevocable, transferable, and sublicensable license to use, reproduce, modify, publish, display, distribute, and create derivative works from your UGC for purposes related to operating, promoting, and improving the Service, without additional compensation to you.`),
-    p(`You represent that you have all rights necessary to grant this license and that your UGC does not violate law or third-party rights.`),
-  ] },
-
-  { level: 2, heading: `Copyright Complaints (DMCA)` },
-  { level: 3, heading: `13) DMCA Takedown Notices`, blocks: [
-    p(`If you believe content on the Service infringes your copyright, you may send a notice to our designated agent with: identification of the copyrighted work, identification of the allegedly infringing material (with URL/location), your contact info, a good-faith statement, a statement under penalty of perjury, and your signature (physical or electronic).`),
-    { type: 'p', text: ``, lead: `Copyright Agent:` },
-    p(`Email: support@fleetxusa.com`),
-  ] },
-
-  { level: 2, heading: `Third-Party Links` },
-  { level: 3, heading: `14) Links to Third Parties`, blocks: [
-    p(`The Service may contain links to third-party websites or services. We do not control and are not responsible for third-party content, policies, or practices. Your use of third-party services is at your own risk.`),
-  ] },
-
-  { level: 2, heading: `Indemnification` },
-  { level: 3, heading: `15) Indemnity`, blocks: [
-    p(`You agree to indemnify and hold harmless FLEET X PARTS, its owners, employees, affiliates, and agents from claims, liabilities, damages, losses, and expenses (including reasonable attorneys' fees) arising from or related to your use of the Service, your violation of these Terms, your violation of any law, or your infringement of any third-party rights.`),
-  ] },
-
-  { level: 2, heading: `Disclaimers and Limitation of Liability` },
-  { level: 3, heading: `16) Disclaimer of Warranties`, blocks: [
-    p(`The Service is provided on an "as is" and "as available" basis. To the maximum extent permitted by law, we disclaim all warranties, express or implied, including implied warranties of merchantability, fitness for a particular purpose, and non-infringement. We do not warrant that the Service will be uninterrupted, secure, or error-free.`),
-  ] },
-  { level: 3, heading: `17) Limitation of Liability`, blocks: [
-    p(`To the maximum extent permitted by law, Fleet X Parts and its affiliates will not be liable for indirect, incidental, special, consequential, or exemplary damages (including lost profits, lost data, or business interruption) arising out of or related to the Service or these Terms.`),
-    p(`Our total liability for any claim arising out of or relating to the Service or these Terms will not exceed the greater of: (a) $50, or (b) the net amount you paid to us for products or services in the 12 months before the event giving rise to the claim.`),
-    p(`Some jurisdictions do not allow certain limitations; in that case, liability will be limited to the maximum extent permitted by applicable law.`),
-  ] },
-
-  { level: 2, heading: `General Legal Terms` },
-  { level: 3, heading: `18) Governing Law`, blocks: [
-    p(`These Terms are governed by the laws of the State of Indiana, without regard to conflict-of-law rules.`),
-  ] },
-  { level: 3, heading: `19) Dispute Resolution; Arbitration; Class Action Waiver`, blocks: [
-    p(`Any dispute arising out of or relating to these Terms or the Service shall be resolved by binding arbitration administered by the American Arbitration Association under its applicable rules, conducted in Indiana, before a single arbitrator.`),
-    { type: 'p', lead: `Class action waiver: `, text: `To the fullest extent permitted by law, you waive any right to bring or participate in class actions or class arbitration against us.` },
-    { type: 'p', lead: `Jury trial waiver: `, text: `To the fullest extent permitted by law, you waive the right to a trial by jury.` },
-    p(`Notwithstanding arbitration, we may seek injunctive or equitable relief in a court of competent jurisdiction to protect our intellectual property or prevent unauthorized use of the Service.`),
-  ] },
-  { level: 3, heading: `20) Time Limit to Bring Claims`, blocks: [
-    p(`You must bring any claim within one (1) year after the claim arises, unless a longer period is required by law.`),
-  ] },
-  { level: 3, heading: `21) Severability; No Waiver; Assignment`, blocks: [
-    p(`If any provision is found unenforceable, the remaining provisions remain in effect. Our failure to enforce any provision is not a waiver. You may not assign these Terms without our written consent; we may assign them as part of business operations.`),
-  ] },
-  { level: 3, heading: `22) Entire Agreement`, blocks: [
-    p(`These Terms, plus any policies incorporated by reference (including our Privacy Policy, Shipping & Return Policy, and Cancellation & Refund Policy), constitute the entire agreement between you and us regarding the Service.`),
-  ] },
+  {
+    heading: `1. Eligibility and Accounts`,
+    blocks: [
+      { type: 'p', text: `You must be at least 18 years old and able to form a legally binding contract to purchase from us. Business customers represent that they are authorized to bind the business on whose behalf they purchase. You are responsible for maintaining the confidentiality of your account credentials and for all activity under your account.` }
+    ],
+  },
+  {
+    heading: `2. Products and Fitment`,
+    blocks: [
+      { type: 'p', text: `We sell heavy-duty truck parts and related products. We make reasonable efforts to describe products accurately, but product descriptions, images, specifications, and availability may contain errors or change without notice.` },
+      { type: 'p', lead: `Fitment responsibility. `, text: `It is the customer's responsibility to verify that a part is correct and compatible with their vehicle or application before ordering and before installation. This includes confirming make, model, year, engine, VIN, OEM/part numbers, and specifications. Fleet X USA is not responsible for parts ordered in error due to incorrect fitment information provided by the customer. If you are unsure, contact us at Support@fleetxusa.com before purchasing.` }
+    ],
+  },
+  {
+    heading: `3. Pricing, Availability, and Errors`,
+    blocks: [
+      {
+        type: 'ul',
+        items: [
+          `All prices are listed in U.S. dollars (USD) and are subject to change without notice.`,
+          `Product availability is not guaranteed, and items may be backordered or discontinued.`,
+          `We reserve the right to correct any errors, inaccuracies, or omissions (including pricing and availability errors) and to cancel orders affected by such errors, even after an order has been submitted or confirmed.`,
+          `Applicable sales taxes will be added at checkout unless a valid tax-exemption/resale certificate is on file.`,
+        ],
+      }
+    ],
+  },
+  {
+    heading: `4. Orders and Acceptance`,
+    blocks: [
+      { type: 'p', text: `Your submission of an order is an offer to purchase. All orders are subject to acceptance by us. We may, at our discretion, limit quantities, refuse, or cancel any order (for example, due to suspected fraud, pricing errors, or stock availability). If we cancel an order after payment, we will issue a refund to the original payment method.` }
+    ],
+  },
+  {
+    heading: `5. Payment`,
+    blocks: [
+      { type: 'p', text: `Payments are processed securely through Stripe. By submitting payment information, you represent that you are authorized to use the payment method. You agree to pay all charges, including applicable taxes and shipping fees, incurred under your account.` }
+    ],
+  },
+  {
+    heading: `6. Shipping and Delivery`,
+    blocks: [
+      { type: 'p', text: `Shipping is governed by our Shipping Policy, which is incorporated into these Terms. Title and risk of loss pass to you upon delivery to the carrier, unless otherwise required by law. Delivery dates are estimates and not guaranteed.` }
+    ],
+  },
+  {
+    heading: `7. Returns and Refunds`,
+    blocks: [
+      { type: 'p', text: `Returns and refunds are governed by our Return & Refund Policy, which is incorporated into these Terms.` }
+    ],
+  },
+  {
+    heading: `8. Limited Warranty and Disclaimer`,
+    blocks: [
+      { type: 'p', lead: `Limited warranty. `, text: `Select parts carry a limited warranty, with a maximum warranty period of one (1) year from the date of purchase (or a shorter period as stated for the specific product or by the manufacturer). Warranty coverage, where offered, applies only to the original purchaser and covers defects in materials or workmanship under normal use. Warranty claims require proof of purchase and are handled as described in our Return & Refund Policy.` },
+      { type: 'p', text: `Some products are covered only by the manufacturer's warranty, in which case warranty service is provided per the manufacturer's terms.` },
+      { type: 'p', lead: `Warranty exclusions. `, text: `Warranties do not cover damage or failure resulting from improper installation, misuse, abuse, accident, modification, normal wear and tear, failure to follow instructions, or use in an application for which the part was not intended.` },
+      { type: 'p', lead: `Disclaimer. `, text: `EXCEPT FOR ANY EXPRESS LIMITED WARRANTY STATED ABOVE, ALL PRODUCTS ARE PROVIDED "AS IS" AND "AS AVAILABLE." TO THE FULLEST EXTENT PERMITTED BY LAW, WE DISCLAIM ALL OTHER WARRANTIES, WHETHER EXPRESS, IMPLIED, OR STATUTORY, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.` }
+    ],
+  },
+  {
+    heading: `9. Installation and Professional Use`,
+    blocks: [
+      { type: 'p', text: `Heavy-duty truck parts should be installed by a qualified professional in accordance with manufacturer specifications and all applicable safety regulations. You are responsible for safe and lawful installation and use. We are not liable for improper installation or use.` }
+    ],
+  },
+  {
+    heading: `10. Limitation of Liability`,
+    blocks: [
+      { type: 'p', text: `TO THE FULLEST EXTENT PERMITTED BY LAW, FLEET X USA AND ITS OWNERS, EMPLOYEES, AND SUPPLIERS SHALL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR FOR LOST PROFITS, LOST REVENUE, VEHICLE DOWNTIME, OR TOWING/LABOR COSTS, ARISING OUT OF OR RELATED TO YOUR USE OF THE SITE OR PRODUCTS. OUR TOTAL AGGREGATE LIABILITY FOR ANY CLAIM SHALL NOT EXCEED THE AMOUNT YOU PAID FOR THE PRODUCT GIVING RISE TO THE CLAIM. Some jurisdictions do not allow certain limitations, so some of the above may not apply to you.` }
+    ],
+  },
+  {
+    heading: `11. Indemnification`,
+    blocks: [
+      { type: 'p', text: `You agree to indemnify and hold harmless Fleet X USA and its owners, employees, and suppliers from any claims, damages, liabilities, and expenses (including reasonable attorneys' fees) arising out of your breach of these Terms, your misuse of products, or your violation of any law or third-party right.` }
+    ],
+  },
+  {
+    heading: `12. Intellectual Property`,
+    blocks: [
+      { type: 'p', text: `All content on the Site—including text, graphics, logos, images, and software—is the property of Fleet X USA or its licensors and is protected by applicable intellectual property laws. You may not copy, reproduce, or use our content without prior written permission. Manufacturer names, part numbers, and trademarks are used for reference only and remain the property of their respective owners.` }
+    ],
+  },
+  {
+    heading: `13. Prohibited Uses`,
+    blocks: [
+      { type: 'p', text: `You agree not to use the Site to: violate any law; infringe others' rights; submit false or fraudulent information; interfere with the Site's security or operation; or engage in unauthorized data collection (scraping). We may suspend or terminate access for violations.` }
+    ],
+  },
+  {
+    heading: `14. Third-Party Links`,
+    blocks: [
+      { type: 'p', text: `The Site may link to third-party websites. We are not responsible for the content, products, or practices of those sites.` }
+    ],
+  },
+  {
+    heading: `15. Governing Law and Dispute Resolution`,
+    blocks: [
+      { type: 'p', text: `These Terms are governed by the laws of the State of Indiana, without regard to its conflict-of-laws rules. You agree that any dispute arising out of or relating to these Terms or your purchase shall be brought exclusively in the state or federal courts located in Indiana, and you consent to the jurisdiction of those courts.` }
+    ],
+  },
+  {
+    heading: `16. Changes to These Terms`,
+    blocks: [
+      { type: 'p', text: `We may update these Terms at any time. Changes are effective when posted on this page with an updated "Last Updated" date. Your continued use of the Site or placement of orders after changes take effect constitutes acceptance.` }
+    ],
+  },
+  {
+    heading: `17. Severability and Entire Agreement`,
+    blocks: [
+      { type: 'p', text: `If any provision of these Terms is found unenforceable, the remaining provisions remain in full effect. These Terms, together with our Privacy Policy, Shipping Policy, and Return & Refund Policy, constitute the entire agreement between you and Fleet X USA regarding your use of the Site and purchases.` }
+    ],
+  },
+  {
+    heading: `18. Contact Us`,
+    blocks: [
+      {
+        type: 'ul',
+        items: [
+          { lead: `Company: `, text: `Fleet X USA` },
+          { lead: `Email: `, text: `Support@fleetxusa.com` },
+          { lead: `Website: `, text: `www.fleetxusa.com` },
+          { lead: `Mailing Address: `, text: `1101 Milliken Ave, Ste E, Ontario, CA 91761` },
+        ],
+      }
+    ],
+  },
 ];
 
 export default function TermsConditionsPage() {
   return (
     <PolicyPage
-      title="Terms of Service & Terms and Conditions"
-      subtitle="Last updated: December 17, 2025"
+      title="Terms & Conditions"
+      subtitle="Effective Date: October 14, 2026 | Last Updated: October 14, 2026"
       intro={[
-        `This website and any related online services, tools, accounts, customer support channels, and features (together, the "Service") are provided by FLEET X PARTS ("Company," "we," "us," or "our"). These Terms of Service & Terms and Conditions (the "Terms") govern your access to and use of the Service.`,
-        `By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, do not access or use the Service. These Terms apply whether you access the Service via a computer, mobile device, or any other device or technology.`,
+        `These Terms & Conditions ("Terms") govern your access to and use of the website www.fleetxusa.com (the "Site") and your purchase of products from Fleet X USA ("Fleet X USA," "we," "us," or "our"). By accessing the Site or placing an order, you agree to these Terms. If you do not agree, do not use the Site or purchase from us.`,
       ]}
       sections={SECTIONS}
-      contact="For questions about these Terms, please contact us at support@fleetxusa.com."
     />
   );
 }

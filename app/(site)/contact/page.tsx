@@ -1,6 +1,9 @@
 import type { Metadata } from 'next';
-import { pageMetadata } from '@/lib/site';
+import { CONTACT, pageMetadata } from '@/lib/site';
 import ContactForm from '@/components/ContactForm';
+
+// Full address, used for the map link and embedded map.
+const ADDRESS = `${CONTACT.street}, ${CONTACT.city}, ${CONTACT.region} ${CONTACT.postalCode}`;
 
 const DESCRIPTION =
   'Get in touch with Fleet X Parts for help with parts, fitment, pricing, or an existing order.';
@@ -118,14 +121,14 @@ const ContactPage = () => {
                       Address
                     </h3>
                     <a
-                      href="https://maps.app.goo.gl/FEtDjLpjWRWjnDTo7"
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ADDRESS)}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-gray-600 hover:text-[#00a550] text-sm leading-relaxed block transition-colors"
                     >
-                      415 E 31st Street
+                      {CONTACT.street}
                       <br />
-                      Anderson, IN 46016
+                      {CONTACT.city}, {CONTACT.region} {CONTACT.postalCode}
                     </a>
                   </div>
                 </div>
@@ -143,10 +146,10 @@ const ContactPage = () => {
                       Phone
                     </h3>
                     <a
-                      href="tel:0000000000"
+                      href={`tel:${CONTACT.phoneE164}`}
                       className="text-[#00a550] hover:underline text-sm"
                     >
-                      917-293-3704
+                      {CONTACT.phone}
                     </a>
                   </div>
                 </div>
@@ -162,7 +165,7 @@ const ContactPage = () => {
           {/* Map */}
           <div className="mt-8 bg-white rounded-lg shadow-md overflow-hidden">
             <iframe
-              src="https://www.google.com/maps?q=415+E+31st+St,+Anderson,+IN+46016&output=embed"
+              src={`https://www.google.com/maps?q=${encodeURIComponent(ADDRESS)}&output=embed`}
               width="100%"
               height="400"
               style={{ border: 0 }}

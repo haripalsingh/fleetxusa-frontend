@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import MobileDrawer from './MobileDrawer';
+import { isLinkLive, useLiveCategories } from '@/lib/liveCategories';
 import type { DrawerSection } from './MobileDrawer';
 
 type NavLink = { label: string; to: string; desc?: string };
@@ -122,6 +123,10 @@ const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null); // 'products' | 'about' | 'resources' | 'contact' | null
   const { user, isAuthenticated, logout, loading } = useAuth();
+  // Hide category links removed in admin (site is pre-built, so check the live API)
+  const liveCats = useLiveCategories();
+  const liveLink = (l: { to?: string }) => isLinkLive(l.to, liveCats);
+  const drawerSections = DRAWER_SECTIONS.map((sec) => (sec.links ? { ...sec, links: sec.links.filter(liveLink) } : sec));
   const navRef = useRef<HTMLDivElement>(null);
   const headerBarRef = useRef<HTMLElement>(null);
   const [headerHeight, setHeaderHeight] = useState(0);
@@ -361,7 +366,7 @@ const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
     <div className="absolute left-1/2 top-full -translate-x-1/2 pt-5 z-40">
       <div className="fx-menu-in w-80 rounded-2xl bg-white p-2 shadow-2xl ring-1 ring-black/5 font-display">
         <ul>
-          {(menu.links ?? []).map((link) => {
+          {(menu.links ?? []).filter(liveLink).map((link) => {
             const active = pathname === link.to;
             const icon = RESOURCE_ICONS[link.to];
             const desc = link.desc ?? RESOURCE_DESCS[link.to];
@@ -453,7 +458,7 @@ const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
             <div className="p-7">
               <p className="mb-4 text-xs font-bold uppercase tracking-[0.18em] text-gray-500">Shop by category</p>
               <ul className="grid grid-cols-2 gap-3">
-                {MEGA_CATEGORIES.map((c) => (
+                {MEGA_CATEGORIES.filter(liveLink).map((c) => (
                   <li key={c.to}>
                     <Link
                       href={c.to}
@@ -736,7 +741,7 @@ const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
     React.createElement(MobileDrawer, {
       open: isMobileMenuOpen,
       onClose: () => setIsMobileMenuOpen(false),
-      sections: DRAWER_SECTIONS,
+      sections: drawerSections,
       cartCount,
       isAuthenticated,
       onLogout: handleLogout,

@@ -48,10 +48,10 @@ export const CONTACT = {
   /** E.164 format for tel: links and schema.org. */
   phoneE164: '+19172933704',
   email: 'support@fleetxusa.com',
-  street: '415 E 31 Street',
-  city: 'Anderson',
-  region: 'IN',
-  postalCode: '46016',
+  street: '1101 Milliken Ave, Ste E',
+  city: 'Ontario',
+  region: 'CA',
+  postalCode: '91761',
   country: 'US',
   hoursLabel: 'Mon–Fri 9:00 AM–6:00 PM ET',
 } as const;

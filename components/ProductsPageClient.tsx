@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ProductListing from '@/components/ProductListing';
 import type { Category, ProductListResult } from '@/lib/types';
+import { useLiveCategories } from '@/lib/liveCategories';
 
 const matchKey = (value: string): string =>
   value.toLowerCase().replace(/&/g, '').replace(/[^a-z0-9]/g, '').replace(/s$/, '');
@@ -14,13 +15,14 @@ const matchKey = (value: string): string =>
  */
 export default function ProductsPageClient({
   initial,
-  categories,
+  categories: builtCategories,
   detroitPath,
 }: {
   initial: ProductListResult;
   categories: Category[];
   detroitPath: string;
 }) {
+  const categories = useLiveCategories(builtCategories); // live list (admin changes, no rebuild)
   const params = useSearchParams();
   const router = useRouter();
   const q = (params.get('q') ?? '').trim();
