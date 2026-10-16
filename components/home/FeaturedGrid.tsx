@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { api, priceRange, productUrl } from '@/lib/api';
 import type { ProductSummary } from '@/lib/types';
-import WishlistButton from '@/components/WishlistButton';
 
 /**
  * Product cards for "Popular Truck Parts". The home page is pre-built, so prices and stock are
@@ -34,7 +33,7 @@ export default function FeaturedGrid({ products: built }: { products: ProductSum
           {products.map((p) => {
             const price = priceRange(p.price_min, p.price_max);
             return (
-              <li key={p.id} className="relative">
+              <li key={p.id}>
                 <Link
                   href={productUrl(p)}
                   className="group flex h-full flex-col overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:border-[#00a550] hover:shadow-xl"
@@ -67,7 +66,6 @@ export default function FeaturedGrid({ products: built }: { products: ProductSum
                     </span>
                   </div>
                 </Link>
-                <WishlistButton productId={p.id} productName={p.name} className="absolute right-3 top-3" />
               </li>
             );
           })}
