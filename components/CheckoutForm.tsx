@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import type { FormEvent, ReactNode } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api, ApiError } from '@/lib/api';
 import { formatMoney, refreshCart, useCart } from '@/lib/cart';
 import { useAuth } from '@/context/AuthContext';
@@ -155,6 +156,12 @@ const pickErrors = (errors: Record<string, string>, prefix: string): Errors =>
 export default function CheckoutForm() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
   const { items, ready, count, issues, totals: cartTotals } = useCart();
+  const router = useRouter();
+
+  // No guest checkout: signed-out visitors must log in / register first (cart is merged on login).
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) router.replace('/login?next=/checkout');
+  }, [authLoading, isAuthenticated, router]);
 
   const [step, setStep] = useState<Step>('shipping');
   const [email, setEmail] = useState('');
@@ -313,6 +320,12 @@ export default function CheckoutForm() {
       }
     }
 
+    if (!isAuthenticated) {
+      setPlacing(false);
+      router.replace('/login?next=/checkout');
+      return;
+    }
+
     try {
       const res = await api<{ order: Order; payment: PaymentStart; payment_error: string | null }>('/orders', {
         method: 'POST',
@@ -376,7 +389,7 @@ export default function CheckoutForm() {
     }
   };
 
-  if (!ready || authLoading) {
+  if (!ready || authLoading || !isAuthenticated) {
     return <div className="min-h-[60vh] bg-white" />;
   }
 

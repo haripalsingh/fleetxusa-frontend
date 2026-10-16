@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { api, ApiError, browserStorage, getAuthToken, setAuthToken } from '@/lib/api';
 import { mergeGuestCart, refreshCart, resetCart } from '@/lib/cart';
+import { refreshWishlist } from '@/lib/wishlist';
 import type { User } from '@/lib/types';
 
 type AuthResult = {
@@ -170,7 +171,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // keep cart in sync with auth changes
   useEffect(() => {
-    if (!loading) void refreshCart();
+    if (!loading) {
+      void refreshCart();
+      void refreshWishlist();
+    }
   }, [loading, user?.id]);
 
   const value = useMemo<AuthContextValue>(

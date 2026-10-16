@@ -576,6 +576,7 @@ const Header = ({ phone = '917-293-3704' }: HeaderProps) => {
           [
             { label: 'My Account', path: '/account' },
             { label: 'My Orders', path: '/account/orders' },
+            { label: 'My Wish List', path: '/account/wishlist' },
             { label: 'My Addresses', path: '/account/addresses' },
             { label: 'Profile', path: '/account/profile' },
             { label: 'Change Password', path: '/account/password' }

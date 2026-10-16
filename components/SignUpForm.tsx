@@ -91,6 +91,11 @@ export default function SignUpForm() {
           <h1 className="font-heading text-2xl sm:text-3xl font-bold text-gray-900">Create your account</h1>
           <div className="w-16 h-1 bg-gradient-to-r from-[#00a550] to-[#f8ef05] mx-auto mt-4" />
         </div>
+        {next.startsWith('/checkout') && (
+          <p role="status" className="mt-6 bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded text-sm text-center">
+            Create an account (or sign in) to complete your purchase. Your cart will be saved.
+          </p>
+        )}
 
         <form className="mt-8 space-y-7" onSubmit={handleSubmit} noValidate>
           {error && (

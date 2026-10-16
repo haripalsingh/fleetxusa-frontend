@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { api, priceRange, productUrl } from '@/lib/api';
+import WishlistButton from './WishlistButton';
 import type { Category, ProductListResult, ProductSummary } from '@/lib/types';
 
 type SortKey = 'best' | 'price-asc' | 'price-desc' | 'name' | 'newest';
@@ -387,8 +388,8 @@ export default function ProductListing({
                 }`}
               >
                 {products.map((p) => (
+                  <div key={p.id} className="relative">
                   <Link
-                    key={p.id}
                     href={productUrl(p)}
                     className="group flex flex-col overflow-hidden rounded-xl bg-white shadow-sm transition-shadow hover:shadow-lg"
                   >
@@ -413,6 +414,8 @@ export default function ProductListing({
                       <p className="mt-auto pt-4 text-[18px] font-bold leading-none text-gray-900">{priceLabel(p)}</p>
                     </div>
                   </Link>
+                  <WishlistButton productId={p.id} productName={p.name} className="absolute right-3 top-3" />
+                  </div>
                 ))}
               </div>
             )}

@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { api, ApiError, formatMoney, priceOrCall, priceRange, productUrl } from '@/lib/api';
 import { addToCart } from '@/lib/cart';
+import WishlistButton from './WishlistButton';
 import type { Product } from '@/lib/types';
 
 const TABS = [
@@ -50,7 +51,6 @@ export default function ProductDetail({ product: built }: { product: Product }) 
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState<number | null>(null);
   const [error, setError] = useState('');
-  const [wished, setWished] = useState(false);
 
   const variant = variants.find((v) => v.id === variantId) ?? firstInStock;
   const hasOptions = variants.length > 1;
@@ -299,17 +299,7 @@ export default function ProductDetail({ product: built }: { product: Product }) 
                   {adding ? 'Adding…' : inStock ? 'Add to Cart' : 'Out of Stock'}
                 </button>
               )}
-              <button
-                type="button"
-                onClick={() => setWished((v) => !v)}
-                aria-pressed={wished}
-                className="flex items-center justify-between border border-gray-300 bg-white px-4 py-3 text-xs font-bold uppercase text-gray-900 hover:border-[#00a550]"
-              >
-                <span className="flex-1 text-center">{wished ? 'In Wish List' : 'Add to Wish List'}</span>
-                <svg viewBox="0 0 20 20" className="h-4 w-4 text-gray-500" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-                  <path d="M5 8l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
+              <WishlistButton productId={product.id} productName={product.name} variant="full" />
             </div>
 
             {error && (

@@ -7,9 +7,11 @@ import Link from 'next/link';
 import { ApiError, productUrl } from '@/lib/api';
 import { clearCart, formatMoney, removeCartItem, setCartQuantity, useCart } from '@/lib/cart';
 import type { CartItem } from '@/lib/types';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CartView() {
   const { items, ready, subtotal, issues, totals } = useCart();
+  const { isAuthenticated } = useAuth();
   const [busy, setBusy] = useState<number | 'all' | null>(null);
   const [error, setError] = useState('');
 
@@ -186,13 +188,13 @@ export default function CartView() {
                   <p className="mt-3 text-xs text-gray-500">Coupons can be applied at checkout.</p>
 
                   <Link
-                    href="/checkout"
+                    href={isAuthenticated ? '/checkout' : '/login?next=/checkout'}
                     aria-disabled={issues.length > 0}
                     className={`mt-6 block w-full rounded-lg py-3 text-center text-sm font-semibold text-white bg-gradient-to-r from-[#e9e611] to-[#00a34f] hover:opacity-90 transition-opacity ${
                       issues.length > 0 ? 'pointer-events-none opacity-50' : ''
                     }`}
                   >
-                    Proceed to Checkout
+                    {isAuthenticated ? 'Proceed to Checkout' : 'Log in to Checkout'}
                   </Link>
                   <Link
                     href="/products"

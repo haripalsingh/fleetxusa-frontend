@@ -124,6 +124,11 @@ export default function LoginForm() {
           </h1>
           <div className="w-16 h-1 bg-gradient-to-r from-[#00a550] to-[#f8ef05] mx-auto mt-4" />
         </div>
+        {next.startsWith('/checkout') && (
+          <p role="status" className="mt-6 bg-amber-50 border border-amber-300 text-amber-900 px-4 py-3 rounded text-sm text-center">
+            Please sign in or create an account to complete your purchase. Your cart will be saved.
+          </p>
+        )}
 
         <form className="mt-8 space-y-7" onSubmit={handleSubmit}>
           {justReset && !error && (

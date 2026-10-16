@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 const NAV = [
   { href: '/account', label: 'Overview' },
   { href: '/account/orders', label: 'My Orders' },
+  { href: '/account/wishlist', label: 'My Wish List' },
   { href: '/account/addresses', label: 'My Addresses' },
   { href: '/account/profile', label: 'Profile' },
   { href: '/account/password', label: 'Change Password' },
